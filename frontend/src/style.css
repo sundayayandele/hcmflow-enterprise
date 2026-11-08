@@ -4,3 +4,4 @@
 /* Keep the account/reviewer switch reachable on short desktop viewports. */
 .sidebar{overflow-y:auto}.sidebar-bottom{flex-shrink:0;padding-top:24px}nav{flex-shrink:0}.workspace{flex-shrink:0}@media(max-height:800px) and (min-width:651px){.pilot-card{display:none}.sidebar-bottom{padding-top:12px}.profile{margin-top:0}.sidebar{padding-top:24px}.brand{padding-bottom:22px}}
 .base-inputs{margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}
+.sidebar{top:0;left:0}

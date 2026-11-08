@@ -34,12 +34,14 @@ jobs:
           npx playwright test 2>&1 | tee /tmp/ui-check.log
       - name: Temporary staging stack
         run: |
-          python scripts/configure.py
-          docker compose build
-          docker compose up -d --wait postgres
-          sh scripts/migrate.sh
-          docker compose up -d --wait
-          python scripts/smoke.py
+          set -o pipefail
+          trap 'echo "::error::$(tail -n 16 /tmp/staging-check.log | tr "\n" " ")"' ERR
+          python scripts/configure.py 2>&1 | tee /tmp/staging-check.log
+          docker compose build 2>&1 | tee /tmp/staging-check.log
+          docker compose up -d --wait postgres 2>&1 | tee /tmp/staging-check.log
+          sh scripts/migrate.sh 2>&1 | tee /tmp/staging-check.log
+          docker compose up -d --wait 2>&1 | tee /tmp/staging-check.log
+          python scripts/smoke.py 2>&1 | tee /tmp/staging-check.log
       - name: Verify monitoring configuration
         run: |
           docker compose --profile monitoring run --rm --no-deps --entrypoint promtool prometheus check config /etc/prometheus/prometheus.yml

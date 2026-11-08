@@ -34,3 +34,9 @@ def test_formats_and_formula_rejection():
     assert parse('x.xlsx',f.getvalue())[0]['employee_code']=='ABC'
     book.active.append(['DEF','=1+1']);f=io.BytesIO();book.save(f)
     with pytest.raises(HTTPException): parse('x.xlsx',f.getvalue())
+
+def test_csv_formula_neutralization():
+    from hcm.payroll import csv_cell
+    for value in ['=1+1','+CMD','-CMD','@SUM(A1)','  =1+1']:
+        assert csv_cell(value).startswith("'")
+    assert csv_cell('LAG001')=='LAG001'

@@ -54,6 +54,7 @@ class ElementInput(BaseModel):
     credit_account: str=Field(min_length=1,max_length=30,pattern=r'^[A-Za-z0-9_-]+$')
     @model_validator(mode='after')
     def dates(self):
+        if self.code in {'BASE','SYNTHETIC_TAX','SYNTHETIC_PENSION'}: raise ValueError('Reserved payroll code')
         if self.effective_from>self.effective_to: raise ValueError('Invalid effective dates')
         if self.method=='percent_base' and self.value>100: raise ValueError('Percentage exceeds 100')
         return self
@@ -101,6 +102,15 @@ def calc(base,rule,elements):
     net=money(gross-deductions+reimbursements)
     if net<0: raise HTTPException(422,'Negative net pay; resolve input deductions')
     return {'gross':str(money(gross)),'deductions':str(money(deductions)),'reimbursements':str(money(reimbursements)),'net':str(net),'lines':lines}
+
+def csv_cell(value):
+    # CSV quoting alone does not prevent spreadsheet formula execution.
+    if isinstance(value,str) and value.lstrip().startswith(('=','+','-','@','\t','\r','\n')):
+        return "'"+value
+    return value
+class SafeCsvWriter:
+    def __init__(self,buffer): self.writer=csv.writer(buffer)
+    def writerow(self,values): self.writer.writerow([csv_cell(v) for v in values])
 
 app=application('HCMFlow Payroll & Nigeria Rule Registry')
 @app.get('/readiness')
@@ -177,7 +187,7 @@ def export(id:str,kind:str,request:Request,p=Depends(principal),db=Depends(datab
     if not privileged and kind!='payslips': raise HTTPException(403,'Only your own payslip is available')
     if kind in ['gtbank','statutory']: raise HTTPException(409,'Output blocked pending current specification, specialist sign-off and acceptance tests')
     if row.state!='approved_simulation': raise HTTPException(409,'Independent review required before simulation export')
-    buf=io.StringIO(); w=csv.writer(buf)
+    buf=io.StringIO(); w=SafeCsvWriter(buf)
     if kind in ['register','payslips']:
         w.writerow(['SIMULATION — NOT FOR PAYMENT','employee_code','gross_NGN','deductions_NGN','net_NGN','rule_version','checksum'])
         for r in row.snapshot['results']:

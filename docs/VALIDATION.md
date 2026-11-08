@@ -7,3 +7,7 @@ End-to-end staging smoke script: authenticated tenant isolation across services,
 Browser suite: employee search, calendar/rule configuration, monthly preview, checker role switch/approval, release-gate visibility, mobile navigation and document overflow. Browser screenshots are retained as CI artifacts for 14 days. The Pages browser build has no backend calls in demo mode.
 
 CI also validates Prometheus config and performs a disposable workforce restore with row-count verification. No production statutory engine, GTBank format, external bank acceptance, paid customer performance target, penetration test or full off-site encrypted disaster recovery is validated by these technical checks. Consult Actions for the final per-commit results.
+
+## Local evidence · 2026-11-08
+
+Seven unit tests pass. Desktop payroll approval and mobile navigation browser checks pass using system Chromium. All Compose smoke checks pass against PostgreSQL, including FORCE RLS and runtime audit permission denial. The disposable workforce restore matches the original employee row count. GitHub-hosted UI validation also passed on Ubuntu 24.04; runner staging validation is being checked separately. Pages publication requires repository-owner enablement; the integration returns HTTP 403 for Pages administration.
