@@ -13,7 +13,7 @@ Expected URL after Pages is enabled and a successful deployment: `https://sunday
 3. Open Payroll → New preview and confirm period base inputs.
 4. Switch demo role to reviewer, then approve and download a watermarked synthetic register/payslip summary.
 
-The browser demo does not apply pay elements or reproduce backend authorization. Its simplified flat deductions are **not Nigerian tax logic**. The backend is the authority for real controls.
+The browser demo uses simplified calculations and does not reproduce backend authorization. Its simplified flat deductions are **not Nigerian tax logic**. The backend is the authority for real controls.
 
 ## Local staging stack
 

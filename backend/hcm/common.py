@@ -45,8 +45,10 @@ class Audit(TenantRow, Base):
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     details: Mapped[dict] = mapped_column(JSON, default=dict)
 
-security = HTTPBearer()
-def principal(credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
+security = HTTPBearer(auto_error=False)
+def principal(credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)]):
+    if credentials is None:
+        raise HTTPException(401, 'Authentication required')
     try:
         claims = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=['HS256'], audience='hcmflow', issuer='hcmflow-identity', options={'require': ['exp','iat','sub','tenant_id','roles','iss','aud']})
         uuid.UUID(claims['tenant_id'])

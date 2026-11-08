@@ -24,6 +24,8 @@ x-env: &env
   JWT_SECRET: ${JWT_SECRET:?Generate .env with scripts/configure.py}
   ENVIRONMENT: staging
   PYTHONDONTWRITEBYTECODE: '1'
+  NO_PROXY: identity,workforce,payroll,web,postgres,localhost,127.0.0.1
+  no_proxy: identity,workforce,payroll,web,postgres,localhost,127.0.0.1
 services:
   postgres:
     image: postgres:17.6-alpine
@@ -80,6 +82,9 @@ services:
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
   edge:
+    environment:
+      NO_PROXY: identity,workforce,payroll,web,postgres,localhost,127.0.0.1
+      no_proxy: identity,workforce,payroll,web,postgres,localhost,127.0.0.1
     image: caddy:2.10-alpine
     ports: ['127.0.0.1:8080:8080']
     volumes:
