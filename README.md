@@ -2,6 +2,8 @@
 
 A private, multi-tenant HR and Nigeria payroll platform. Python/FastAPI services, TypeScript/React workspace, PostgreSQL, and Docker Compose. This initial release is a **synthetic staging MVP**, not a production payroll engine.
 
+![HCMFlow synthetic workspace preview](docs/images/overview.png)
+
 ## Try the GUI
 
 The GitHub Pages workflow publishes a **synthetic, in-memory demo** at the URL reported in its deployment output. No login credentials, service URLs, database or real employee data are included. Refresh resets the demo. Switch between demo operator and independent reviewer using the bottom-left profile button.
