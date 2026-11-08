@@ -21,6 +21,8 @@ Private source repository: `sundayayandele/hcmflow-enterprise`. In repository Se
 docker compose -f compose.yaml -f compose.https.yaml up -d --wait
 ```
 
+For recent Compose versions that default to Bake, set `COMPOSE_BAKE=false` if the builder requests a filesystem entitlement for the trusted CA secret outside the source tree; this selects the ordinary Compose build path without changing CA verification.
+
 `compose.https.yaml` clears the loopback port mapping and publishes 80/443. Its Caddy template duplicates the safe routing configuration to make deployment reviewable. Never run it without a confirmed domain and public ingress authorization.
 
 ## Migrations

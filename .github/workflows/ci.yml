@@ -12,6 +12,8 @@ jobs:
   test-and-compose:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    env:
+      COMPOSE_BAKE: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

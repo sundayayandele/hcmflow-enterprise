@@ -24,6 +24,12 @@ jobs:
           VITE_DEMO: 'true'
           PAGES_BASE: /hcmflow-enterprise/
         run: npm ci && npm run build
+      - name: Retain standalone demo for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-demo-static
+          path: frontend/dist
+          retention-days: 14
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with: {path: frontend/dist}

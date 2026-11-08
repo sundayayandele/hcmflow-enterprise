@@ -32,6 +32,7 @@ test('demo navigation and synthetic payroll approval journey',async({page})=>{
  await page.getByRole('button',{name:/Demo operator/}).click();
  await page.getByRole('button',{name:'Approve simulation'}).click();
  await expect(page.getByText('Simulation approved',{exact:true})).toBeVisible();
+ await page.evaluate(()=>window.scrollTo(0,0));
  await page.screenshot({path:'playwright-report/payroll-demo.png',fullPage:true});
  await page.getByRole('button',{name:'Readiness',exact:true}).click();
  await expect(page.getByText('Production payroll is disabled in this release.')).toBeVisible();
