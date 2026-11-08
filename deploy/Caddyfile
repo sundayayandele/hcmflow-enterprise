@@ -1,0 +1,25 @@
+:8080 {
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    }
+    request_body {
+        max_size 3MB
+    }
+    @private path /api/*/metrics /api/*/docs* /api/*/openapi.json
+    respond @private 404
+    handle_path /api/identity/* {
+        reverse_proxy identity:8000
+    }
+    handle_path /api/workforce/* {
+        reverse_proxy workforce:8000
+    }
+    handle_path /api/payroll/* {
+        reverse_proxy payroll:8000
+    }
+    handle {
+        reverse_proxy web:8080
+    }
+}

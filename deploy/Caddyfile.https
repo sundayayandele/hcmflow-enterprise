@@ -1,0 +1,4 @@
+# Replace staging.example.com with confirmed staging domain before deployment.
+staging.example.com {
+    import /etc/caddy/routes
+}

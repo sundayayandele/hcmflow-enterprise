@@ -1,0 +1,575 @@
+HCMFLOW ENTERPRISE
+Nigeria Payroll MVP
+Expert Review and Sign Off Form
+For review by the Nigerian payroll accountant, tax adviser, and HR lead
+Purpose: confirm the first-release workflows, employee-data handling, Nigerian payroll rules, payroll outputs, and operating controls before implementation. Please complete the sections relevant to your role, identify assumptions or disagreements, and attach authoritative references or synthetic test cases where useful.
+Reviewer details
+Field
+Response
+Reviewer name
+____________________________________________________________
+Role
+[  ] HR  [  ] Payroll accountant  [  ] Tax adviser  [  ] Other: __________________
+Organization / firm
+____________________________________________________________
+Review date
+________________________  Version reviewed: __________________________
+Review outcome
+[  ] Approved  [  ] Approved with actions  [  ] Not approved  [  ] Discussion needed
+Confirmed product decisions
+[  ] 
+Nigeria is the first payroll jurisdiction; initial pilot is expected to be private sector and based in Lagos.
+[  ] 
+At setup, an organization can use HCMFlow Core HR data, import from an existing HR system, or mix both sources for different employees within one legal entity.
+[  ] 
+Initial import formats: CSV, XLSX, XML, and JSON. Public third-party API access is a later feature; internal service APIs remain in scope.
+[  ] 
+Payroll launch scope includes gross-to-net, payslips, GTBank payment files, journals, and statutory outputs.
+[  ] 
+Common pay frequencies and pay elements must be available at launch. Authorized admins should be able to configure additional pay elements in the product.
+[  ] 
+All solution areas named on the HCMFlow solutions page are included in the MVP scope, with detailed launch acceptance criteria to be agreed in this form.
+HOW TO USE THIS FORM
+Review instructions
+Complete the general questions and the section assigned to your professional role. Use the action log for anything that needs a product decision, legal interpretation, or implementation change.
+Reviewer
+Primary review responsibility
+HR lead
+Employee records, HR workflows, policy choices, practical scenarios, approvals, user experience, and feature acceptance.
+Payroll accountant
+Payroll inputs and outputs, accounting treatment, reconciliations, pay calendars, sample calculations, and bank-file controls.
+Tax adviser
+Current Nigerian tax rules, Lagos authority requirements, statutory bases/rates/reliefs, filing/remittance requirements, and effective dates.
+Product owner
+Resolve open decisions, assign accountable owners, approve the MVP acceptance criteria, and preserve signed rule evidence.
+Review response key
+[  ] Approved
+     
+[  ] Approved with changes
+     
+[  ] Open question
+     
+[  ] Not applicable
+For every statutory rule, record the applicable employee/employer population, calculation base, effective date, authoritative source, exceptions, and reviewer. Do not write a rate into the product specification without confirming its current legal basis and scope.
+Do not include live employee bank account numbers, Tax IDs, RSA PINs, NINs, passwords, or other personal data in this form. Use synthetic examples and share sensitive evidence through an approved secure channel.
+Review record
+Documents or source materials reviewed (title, authority, date/version):
+________________________________________________________________________________
+________________________________________________________________________________
+Overall comments and highest-priority risks:
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
+SECTION A · HR AND DATA REVIEW
+Employee records and data intake
+Confirm that payroll receives complete, current, and traceable employee data regardless of whether the organization uses HCMFlow Core HR or an existing HR system.
+Source mode and ownership
+[  ] HCMFlow Core HR is source for this employee
+     
+[  ] Imported HR record is source
+     
+[  ] Mixed by employee / population
+How should the source mode be selected and changed? Who may approve a change?
+________________________________________________________________________________
+________________________________________________________________________________
+For mixed mode, how will HCMFlow prevent two sources from overwriting the same field?
+________________________________________________________________________________
+________________________________________________________________________________
+Which system owns employee identity, employment status, compensation, job/location, leave, bank details, and payroll profile?
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
+Import requirements
+Format
+Review points
+CSV / XLSX
+Template, required columns, data types, date/currency formats, field mapping, duplicate detection, validation report, partial rejection and re-import.
+XML
+Supported schema/version, namespaces, required elements, validation, error reporting and versioning.
+JSON
+Supported schema/version, required fields, validation, error reporting and versioning.
+All formats
+Initial load and update behavior, stable external employee ID, idempotency, effective dates, audit record, permissions and secure retention.
+Required fields for a payroll-ready employee record:
+________________________________________________________________________________
+________________________________________________________________________________
+Rules for new hires, leavers, rehires, transfers, correction of historical data, and duplicate records:
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
+Import frequency and who resolves rejected records:
+________________________________________________________________________________
+________________________________________________________________________________
+HR decisions, data gaps, or required fields not listed above:
+________________________________________________________________________________
+SECTION B · HR AND PRODUCT REVIEW
+HCMFlow solution scope
+For each capability, mark whether the launch workflow is sufficient. Add required launch behavior and acceptance evidence. A listed capability should not be treated as approved until its minimum workflow is clear.
+Employee Self-Service
+View/update profile request, payslip access, leave requests, request status, secure authentication.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Core HR and onboarding
+Employee record, employment/compensation changes, onboarding checklist, policy/document acknowledgement.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Payroll
+Gross-to-net, preview, exceptions, approvals, finalization, payslips, GTB payment file, journals and statutory outputs.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Leave / time off
+Leave types and balances, eligibility/accrual, request/approval, holidays, unpaid absence impact.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Time management
+Attendance/timesheet capture or import, corrections, supervisor approval, approved payroll inputs.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Recruitment tracking
+Requisition, applicant pipeline, interview stages, offer, conversion to employee.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Performance appraisal
+Review cycle, goals, employee/manager feedback, approval and retained review outcome.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Expense management
+Claim, receipt, policy review, approval, reimbursement export, payroll treatment when applicable.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+HR analytics
+Role-limited workforce, leave, recruitment and payroll summaries; export and data freshness.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Exit management
+Exit checklist, asset/access tasks, final pay inputs, document handover, account closure.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Service requests
+Categories, assignment, status/SLA, comments, attachments, escalation and audit history.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+Disciplinary management
+Restricted case access, evidence, review, decision/approval, employee communication and retention.
+[  ] Launch workflow sufficient
+     
+[  ] Change required
+     
+[  ] Not in my review area
+Required acceptance criteria / gaps:
+________________________________________________________________________________
+SECTION C · PAYROLL DESIGN REVIEW
+Pay calendars and pay elements
+Confirm that organizations can select from common pay calendars and configure the pay elements they need without waiting for a software release.
+Pay frequency coverage
+Frequency / calendar
+Required?
+Rules, cutoffs, examples, or exceptions
+Weekly
+[  ] Yes  [  ] No
+______________________________________________
+Fortnightly / biweekly
+[  ] Yes  [  ] No
+______________________________________________
+Semi-monthly
+[  ] Yes  [  ] No
+______________________________________________
+Monthly
+[  ] Yes  [  ] No
+______________________________________________
+Other / custom periods
+[  ] Yes  [  ] No
+______________________________________________
+Pay period start/end, cutoff, pay date, holidays, off-cycle runs, and frequency-change rules:
+________________________________________________________________________________
+Pay element configuration
+Proposed admin-configurable fields include element name/code, earning/deduction/employer-cost/reimbursement type, amount or formula, units/rate, eligibility, effective dates, taxable and pension treatment, caps/floors, proration, GL mapping, payslip label, and approval requirements. Confirm the fields and boundaries below.
+[  ] Standard catalog
+     
+[  ] Admin can add elements
+     
+[  ] Effective dating
+     
+[  ] Test / preview before activation
+[  ] Approval before use
+     
+[  ] Rule/version history
+     
+[  ] Tax treatment
+     
+[  ] Pension treatment
+     
+[  ] GL mapping
+What formula types and calculations must be available to administrators?
+________________________________________________________________________________
+Which settings must be locked to the Nigeria rule pack or require specialist sign-off?
+________________________________________________________________________________
+How should the system handle retroactive changes, proration, rounding, arrears, negative net pay, and corrections?
+________________________________________________________________________________
+________________________________________________________________________________
+Pay elements to validate
+Group
+Examples for review
+Required / treatment / notes
+Earnings
+Basic salary, housing/transport allowances, overtime, shift, commission, bonus, arrears, benefits in kind.
+___________________________________
+Deductions
+PAYE, employee pension, loans/advances, voluntary deductions, court orders, other agreed deductions.
+___________________________________
+Employer costs
+Employer pension or other employer contributions/costs.
+___________________________________
+Reimbursements
+Expense reimbursement and non-payroll treatment where applicable.
+___________________________________
+Adjustments
+Retro pay, corrections, reversals, termination/final pay.
+___________________________________
+Additional pay elements required by the pilot employer
+List the customer-specific components that must be configured for the first payroll. Statutory tax or pension treatment remains subject to specialist confirmation.
+Pay element name
+Type / formula
+Recurring?
+Treatment / reviewer
+________________
+________________
+[  ] Yes  [  ] No
+________________
+________________
+________________
+[  ] Yes  [  ] No
+________________
+________________
+________________
+[  ] Yes  [  ] No
+________________
+________________
+________________
+[  ] Yes  [  ] No
+________________
+________________
+________________
+[  ] Yes  [  ] No
+________________
+SECTION D · TAX ADVISER AND PAYROLL ACCOUNTANT
+Nigeria statutory rule validation
+For each item, cite the current authority and confirm effective date, coverage, calculation base, treatment, filing/remittance obligation, and evidence. This form intentionally does not prefill statutory rates.
+Pilot context: private-sector employer expected in Lagos. Confirm the correct tax authority assignment and treatment from the facts and current law. Identify any cases that require a different jurisdiction or authority.
+Rule area
+Reviewer confirmation required
+Authority / source and effective date
+PAYE / personal income tax
+Coverage; taxable income; deductions/reliefs; annualization; monthly withholding; rounding; zero/low-income handling; leavers and annual returns.
+________________________________
+Authority assignment
+Taxpayer residence/work facts, authority registration, payer/TIN identifiers, Lagos filing and remittance requirements.
+________________________________
+Pension
+Coverage/exemptions; contribution base; employee/employer shares; voluntary/top-up treatment; remittance destination and timing.
+________________________________
+Housing fund / housing scheme
+Applicability, eligible population, contribution base/rate, employer/employee share, exemptions and filing/remittance.
+________________________________
+Health / insurance deductions
+Statutory versus employer-plan treatment; eligibility, bases, deductions and evidence.
+________________________________
+Employment injury / social insurance
+Confirm whether applicable to this employer/employee and required calculation/reporting.
+________________________________
+Training / employer levies
+Confirm applicability thresholds, employer basis, return and payment schedule.
+________________________________
+Other deductions / orders
+Court orders, union/voluntary deductions, caps, precedence, remittance destination and restrictions.
+________________________________
+Benefits and expenses
+Taxability of benefits, allowances, reimbursements, bonuses, commissions, and in-kind items.
+________________________________
+Termination / final pay
+Notice, accrued leave, severance or loss-of-office treatment, final salary and tax reporting.
+________________________________
+List any rule sources that conflict, are outdated, or need written clarification from the authority:
+________________________________________________________________________________
+________________________________________________________________________________
+Required employer registrations, returns, payment references, schedules, and evidence of remittance:
+________________________________________________________________________________
+________________________________________________________________________________
+SECTION D · STATUTORY RULE REGISTER
+Rule schedule and sample calculations
+Use one row per rule. Attach additional copies of this page or a controlled spreadsheet if more space is needed. No production rule should be released without a reviewer, source, effective date, and test evidence.
+Rule / item
+Scope and base
+Value / formula and effective date
+Source / clause
+Reviewed by
+________________
+________________
+____________________________
+______________
+____________
+________________
+________________
+____________________________
+______________
+____________
+________________
+________________
+____________________________
+______________
+____________
+________________
+________________
+____________________________
+______________
+____________
+________________
+________________
+____________________________
+______________
+____________
+Minimum parallel-run scenarios
+Scenario
+Expected result / calculation notes
+Reviewer initials
+Regular full-period salary
+_______________________________________________
+________
+New hire or leaver mid-period
+_______________________________________________
+________
+Unpaid leave / absence
+_______________________________________________
+________
+Overtime, commission, or bonus
+_______________________________________________
+________
+Retroactive salary or rule change
+_______________________________________________
+________
+Multiple pay groups / frequencies
+_______________________________________________
+________
+Exemption or unusual employee case
+_______________________________________________
+________
+Negative net / deduction cap
+_______________________________________________
+________
+Reference payroll, provider output, or independently calculated expected results used for comparison:
+________________________________________________________________________________
+Acceptable variance and how each variance will be resolved:
+________________________________________________________________________________
+SECTION E · PAYROLL ACCOUNTANT AND HR
+Payroll outputs and operating controls
+Confirm that each output can be reconciled, reviewed, approved, securely transmitted, and corrected without changing previously finalized results.
+GTBank payment file
+[  ] GTBank format specification obtained
+     
+[  ] Currency / account format confirmed
+     
+[  ] Beneficiary validation defined
+     
+[  ] Control totals required
+[  ] Maker-checker approval
+     
+[  ] Secure file generation / transfer
+     
+[  ] Duplicate payment prevention
+     
+[  ] Rejected-file process
+Exact GTBank product/channel, file type, required fields, control totals, and acceptance test owner:
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
+Use synthetic bank data for development and review. Obtain GTBank’s current corporate payment-file specification through the customer’s authorized banking channel; do not infer a file format from a generic template.
+Payslips, journals, and statutory outputs
+Output
+Reviewer checks
+Payslips
+Required labels, gross/net/deductions/employer costs, balances, privacy, employee access, corrections.
+Accounting journals
+Chart-of-accounts mapping, dimensions/cost centers, debits=credits, posting period, accruals, reversals.
+Statutory schedules
+Authority-specific employee breakdown, identifiers, totals, validation, filing version and evidence.
+Reconciliation
+Payroll register to bank file, GL journal, statutory schedules and finalized net pay; variance explanations.
+Approval roles and separation of duties (input, calculate, review, approve, finalize, transmit):
+________________________________________________________________________________
+________________________________________________________________________________
+Correction/reversal process after payroll finalization:
+________________________________________________________________________________
+________________________________________________________________________________
+Retention, access, export, and audit requirements:
+________________________________________________________________________________
+________________________________________________________________________________
+SECTION F · ALL REVIEWERS
+Service boundaries and operating assumptions
+Review the business ownership and controls even if you are not responsible for technical design. Raise any dependency that could make a workflow inaccurate or unsafe.
+Service area
+Business responsibility
+Reviewer concern / dependency
+Identity and Tenant
+Tenant, legal entity, roles, permissions and segregation.
+____________________________
+Workforce / Core HR
+Employee master, effective-dated work and compensation data.
+____________________________
+Employee Data Intake
+CSV/XLSX/XML/JSON mapping, validation, import history and mixed-source resolution.
+____________________________
+Payroll
+Pay groups, pay elements, run lifecycle, approval, result snapshots, payslips, bank files and journals.
+____________________________
+Nigeria Statutory
+Versioned Nigeria rules, validations and statutory schedules.
+____________________________
+Talent / Workforce Operations
+Recruitment, onboarding, exits, leave, time, performance and expenses.
+____________________________
+Employee Services / Insights
+Self-service, requests, disciplinary cases, analytics and notifications.
+____________________________
+[  ] Tenant data isolation
+     
+[  ] Role-based access
+     
+[  ] Sensitive-field protection
+     
+[  ] Audit history
+[  ] Import error handling
+     
+[  ] Idempotent payroll runs
+     
+[  ] Rule-version traceability
+     
+[  ] Backup / recovery
+Any workflow that depends on another service being available at the exact time of a payroll run?
+________________________________________________________________________________
+________________________________________________________________________________
+Reports, data exports, access restrictions, or retention needs that are missing:
+________________________________________________________________________________
+________________________________________________________________________________
+FINAL REVIEW
+Actions and sign off
+Record every material gap as an owned action. Sign-off confirms review of the stated scope and assumptions; it does not replace legal advice or the employer’s statutory obligations.
+ID
+Issue / required change
+Owner
+Due date
+Status
+1
+__________________________________
+____________
+__________
+________
+2
+__________________________________
+____________
+__________
+________
+3
+__________________________________
+____________
+__________
+________
+4
+__________________________________
+____________
+__________
+________
+5
+__________________________________
+____________
+__________
+________
+Reviewer sign off
+Role
+Decision
+Name and signature
+Date
+HR lead
+[  ] Approve  [  ] Conditional  [  ] Reject
+_______________________
+__________
+Payroll accountant
+[  ] Approve  [  ] Conditional  [  ] Reject
+_______________________
+__________
+Tax adviser
+[  ] Approve  [  ] Conditional  [  ] Reject
+_______________________
+__________
+Product owner
+[  ] Accept actions  [  ] Rework required
+_______________________
+__________
+Conditions that must be met before payroll rules or bank outputs are released to production:
+________________________________________________________________________________
+________________________________________________________________________________
+________________________________________________________________________________
+Reference sources for reviewer confirmation
+Joint Revenue Board 2026 Personal Income Tax Guidelines: 
+https://www.jrb.gov.ng/assets/2026-pit-guidelines-TJG3n9-T.pdf
+Lagos State Internal Revenue Service FAQ: 
+https://lirs.gov.ng/faq
+PenCom 2023 Frequently Asked Questions: 
+https://www.pencom.gov.ng/wp-content/uploads/2023/09/FREQUENTLY-ASKED-QUESTIONS-2023.pdf
+PenCom New Pension Scheme Introduction FAQ: 
+https://www.pencom.gov.ng/category/frequently-asked-questions/new-pension-scheme-introduction/
+Please verify that each source is current and applicable to the employer, employee population, and payroll period under review. Record the version and relevant provision in the rule register.

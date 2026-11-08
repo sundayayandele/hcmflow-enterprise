@@ -1,0 +1,10 @@
+services:
+  identity:
+    environment:
+      DATABASE_URL: postgresql+psycopg://identity_owner:${IDENTITY_MIGRATION_PASSWORD}@postgres/identity
+  workforce:
+    environment:
+      DATABASE_URL: postgresql+psycopg://workforce_owner:${WORKFORCE_MIGRATION_PASSWORD}@postgres/workforce
+  payroll:
+    environment:
+      DATABASE_URL: postgresql+psycopg://payroll_owner:${PAYROLL_MIGRATION_PASSWORD}@postgres/payroll

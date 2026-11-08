@@ -1,0 +1,18 @@
+groups:
+  - name: hcmflow
+    rules:
+      - alert: HCMServiceDown
+        expr: up{job="hcmflow"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations: {summary: 'HCMFlow service is unavailable'}
+      - alert: HCMHighErrorRate
+        expr: sum(rate(hcm_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(hcm_requests_total[5m])), 0.01) > 0.05
+        for: 5m
+        labels: {severity: warning}
+        annotations: {summary: 'More than 5 percent server errors'}
+      - alert: HCMHighLatency
+        expr: histogram_quantile(0.95, sum by (le,service) (rate(hcm_request_seconds_bucket[5m]))) > 0.5
+        for: 10m
+        labels: {severity: warning}
+        annotations: {summary: 'API p95 exceeds proposed 500ms target'}

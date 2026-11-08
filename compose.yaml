@@ -1,0 +1,106 @@
+name: hcmflow-staging
+x-api: &api
+  build:
+    context: backend
+    secrets: [proxy_ca]
+  restart: unless-stopped
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 384m
+  cpus: 1
+  logging: &logging
+    driver: json-file
+    options: {max-size: 10m, max-file: '3'}
+  healthcheck:
+    test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+    interval: 10s
+    timeout: 5s
+    retries: 12
+  depends_on:
+    postgres: {condition: service_healthy}
+x-env: &env
+  JWT_SECRET: ${JWT_SECRET:?Generate .env with scripts/configure.py}
+  ENVIRONMENT: staging
+  PYTHONDONTWRITEBYTECODE: '1'
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      identity_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?}
+      workforce_DB_PASSWORD: ${WORKFORCE_DB_PASSWORD:?}
+      payroll_DB_PASSWORD: ${PAYROLL_DB_PASSWORD:?}
+      identity_MIGRATION_PASSWORD: ${IDENTITY_MIGRATION_PASSWORD:?}
+      workforce_MIGRATION_PASSWORD: ${WORKFORCE_MIGRATION_PASSWORD:?}
+      payroll_MIGRATION_PASSWORD: ${PAYROLL_MIGRATION_PASSWORD:?}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres-init.sh:/docker-entrypoint-initdb.d/01-hcmflow.sh:ro
+    mem_limit: 1g
+    cpus: 2
+    logging: *logging
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  identity:
+    <<: *api
+    environment:
+      <<: *env
+      SERVICE: identity
+      DATABASE_URL: postgresql+psycopg://identity_app:${IDENTITY_DB_PASSWORD}@postgres/identity
+  workforce:
+    <<: *api
+    environment:
+      <<: *env
+      SERVICE: workforce
+      PII_KEY: ${PII_KEY:?}
+      DATABASE_URL: postgresql+psycopg://workforce_app:${WORKFORCE_DB_PASSWORD}@postgres/workforce
+  payroll:
+    <<: *api
+    environment:
+      <<: *env
+      SERVICE: payroll
+      WORKFORCE_URL: http://workforce:8000
+      DATABASE_URL: postgresql+psycopg://payroll_app:${PAYROLL_DB_PASSWORD}@postgres/payroll
+  web:
+    build:
+      context: frontend
+      secrets: [proxy_ca]
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.5
+    logging: *logging
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  edge:
+    image: caddy:2.10-alpine
+    ports: ['127.0.0.1:8080:8080']
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on: [web, identity, workforce, payroll]
+    mem_limit: 128m
+    cpus: 0.5
+    logging: *logging
+  prometheus:
+    image: prom/prometheus:v3.7.3
+    profiles: [monitoring]
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - metrics:/prometheus
+    command: ['--config.file=/etc/prometheus/prometheus.yml','--storage.tsdb.retention.time=15d']
+    mem_limit: 512m
+    logging: *logging
+volumes:
+  pgdata:
+  metrics:
+secrets:
+  proxy_ca:
+    file: ${BUILD_CA_FILE:-/etc/ssl/certs/ca-certificates.crt}
