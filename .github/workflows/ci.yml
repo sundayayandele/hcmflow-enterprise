@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   test-and-compose:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -26,10 +26,12 @@ jobs:
         working-directory: frontend
         env: {VITE_DEMO: 'true'}
         run: |
-          npm ci
-          npm run build
-          npx playwright install --with-deps chromium
-          npx playwright test
+          set -o pipefail
+          trap 'echo "::error::$(tail -n 12 /tmp/ui-check.log | tr "\n" " ")"' ERR
+          npm ci 2>&1 | tee /tmp/ui-check.log
+          npm run build 2>&1 | tee /tmp/ui-check.log
+          npx playwright install --with-deps chromium 2>&1 | tee /tmp/ui-check.log
+          npx playwright test 2>&1 | tee /tmp/ui-check.log
       - name: Temporary staging stack
         run: |
           python scripts/configure.py
