@@ -12,14 +12,20 @@ x-api: &api
   cpus: 1
   logging: &logging
     driver: json-file
-    options: {max-size: 10m, max-file: '3'}
+    options: { max-size: 10m, max-file: '3' }
   healthcheck:
-    test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+    test:
+      [
+        CMD,
+        python,
+        -c,
+        "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+      ]
     interval: 10s
     timeout: 5s
     retries: 12
   depends_on:
-    postgres: {condition: service_healthy}
+    postgres: { condition: service_healthy }
 x-env: &env
   JWT_SECRET: ${JWT_SECRET:?Generate .env with scripts/configure.py}
   ENVIRONMENT: staging
@@ -100,7 +106,7 @@ services:
       - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./deploy/alerts.yml:/etc/prometheus/alerts.yml:ro
       - metrics:/prometheus
-    command: ['--config.file=/etc/prometheus/prometheus.yml','--storage.tsdb.retention.time=15d']
+    command: ['--config.file=/etc/prometheus/prometheus.yml', '--storage.tsdb.retention.time=15d']
     mem_limit: 512m
     logging: *logging
 volumes:

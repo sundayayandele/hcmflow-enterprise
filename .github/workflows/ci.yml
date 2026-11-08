@@ -17,20 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: {python-version: '3.12', cache: pip, cache-dependency-path: backend/requirements.txt}
+        with:
+          { python-version: '3.12', cache: pip, cache-dependency-path: backend/requirements.txt }
       - uses: actions/setup-node@v4
-        with: {node-version: '22', cache: npm, cache-dependency-path: frontend/package-lock.json}
+        with: { node-version: '22', cache: npm, cache-dependency-path: frontend/package-lock.json }
       - name: Python dependencies and tests
         run: |
           pip install -r backend/requirements.txt
           python -m pytest -q
       - name: Build and test demo UI
         working-directory: frontend
-        env: {VITE_DEMO: 'true'}
+        env: { VITE_DEMO: 'true' }
         run: |
           set -o pipefail
           trap 'echo "::error::$(tail -n 12 /tmp/ui-check.log | tr "\n" " ")"' ERR
           npm ci 2>&1 | tee /tmp/ui-check.log
+          npm audit --audit-level=high 2>&1 | tee /tmp/ui-check.log
           npm run build 2>&1 | tee /tmp/ui-check.log
           npx playwright install --with-deps chromium 2>&1 | tee /tmp/ui-check.log
           npx playwright test 2>&1 | tee /tmp/ui-check.log
