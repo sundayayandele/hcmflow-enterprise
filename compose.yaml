@@ -53,7 +53,7 @@ services:
     cpus: 2
     logging: *logging
     healthcheck:
-      test: [CMD-SHELL, 'pg_isready -U postgres']
+      test: [CMD-SHELL, 'pg_isready -h 127.0.0.1 -U postgres']
       interval: 5s
       timeout: 5s
       retries: 20
