@@ -2,7 +2,7 @@ name: Publish GUI demo
 on:
   push:
     branches: [main]
-    paths: ['frontend/**', '.github/workflows/pages.yml']
+    paths: ['frontend/**', '.github/workflows/pages.yml', 'scripts/verify-pages.py']
   workflow_dispatch:
 permissions:
   contents: read
@@ -40,6 +40,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify published document and build assets
+        env:
+          PAGES_URL: ${{ steps.deployment.outputs.page_url }}
+        run: python3 scripts/verify-pages.py

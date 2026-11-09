@@ -1,6 +1,6 @@
 # HCMFlow Enterprise
 
-A private, multi-tenant HR and Nigeria payroll platform. Python/FastAPI services, TypeScript/React workspace, PostgreSQL, and Docker Compose. This initial release is a **synthetic staging MVP**, not a production payroll engine.
+A multi-tenant HR and Nigeria payroll platform. Python/FastAPI services, TypeScript/React workspace, PostgreSQL, and Docker Compose. This initial release is a **synthetic staging MVP**, not a production payroll engine.
 
 ![HCMFlow synthetic workspace preview](docs/images/overview.png)
 
@@ -8,7 +8,7 @@ A private, multi-tenant HR and Nigeria payroll platform. Python/FastAPI services
 
 The GitHub Pages workflow publishes a **synthetic, in-memory demo** at the URL reported in its deployment output. No login credentials, service URLs, database or real employee data are included. Refresh resets the demo. Switch between demo operator and independent reviewer using the bottom-left profile button.
 
-Expected URL after Pages is enabled and a successful deployment: `https://sundayayandele.github.io/hcmflow-enterprise/`. A private repository requires a GitHub plan that supports Pages. The demo may be public; the source repository must remain private.
+Expected URL after Pages is enabled and a successful deployment: `https://sundayayandele.github.io/hcmflow-enterprise/`. The owner has made this repository public for GUI testing. The Pages site contains synthetic demo data only.
 
 1. Explore Overview, People, Capability map and Readiness.
 2. In Configuration, add a **monthly** calendar and a synthetic rule with invented test percentages. There are deliberately no default tax/pension rates.
