@@ -8,3 +8,6 @@ services:
   payroll:
     environment:
       DATABASE_URL: postgresql+psycopg://payroll_owner:${PAYROLL_MIGRATION_PASSWORD}@postgres/payroll
+  workplace:
+    environment:
+      DATABASE_URL: postgresql+psycopg://workplace_owner:${WORKPLACE_MIGRATION_PASSWORD}@postgres/workplace

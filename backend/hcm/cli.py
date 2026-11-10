@@ -30,7 +30,12 @@ def migrate():
             # Runtime roles cannot rewrite or delete audit history. Audit owner remains the migration identity.
             runtime = os.environ.get("RUNTIME_ROLE")
             if runtime:
-                if runtime not in ("identity_app", "workforce_app", "payroll_app"):
+                if runtime not in (
+                    "identity_app",
+                    "workforce_app",
+                    "payroll_app",
+                    "workplace_app",
+                ):
                     raise ValueError("Invalid runtime role")
                 c.execute(
                     text(
@@ -42,10 +47,20 @@ def migrate():
                 )
 
 
-def provision(slug, name, email, roles):
+def provision(slug, name, email, roles, employee_id=None):
     if SERVICE != "identity":
         raise ValueError("Provision through identity service only")
-    allowed = {"admin", "hr", "payroll", "approver", "auditor", "employee"}
+    allowed = {
+        "admin",
+        "hr",
+        "payroll",
+        "approver",
+        "auditor",
+        "employee",
+        "finance",
+        "recruiter",
+        "talent",
+    }
     if not set(roles.split(",")).issubset(allowed):
         raise ValueError("Unknown roles")
     password = os.environ.get("PROVISION_PASSWORD") or getpass.getpass(
@@ -53,6 +68,8 @@ def provision(slug, name, email, roles):
     )
     if len(password) < 16:
         raise ValueError("Password must have at least 16 characters")
+    if employee_id:
+        uuid.UUID(employee_id)
     from hcm.identity import Tenant, User, passwords
 
     with Session.begin() as db:
@@ -71,6 +88,7 @@ def provision(slug, name, email, roles):
                 email=email.lower(),
                 password_hash=passwords.hash(password),
                 roles=roles,
+                employee_id=employee_id,
             )
         )
     print("User provisioned; no credentials printed")
@@ -79,6 +97,7 @@ def provision(slug, name, email, roles):
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("command", choices=["migrate", "provision"])
+    p.add_argument("--employee-id")
     p.add_argument("--tenant")
     p.add_argument("--name")
     p.add_argument("--email")
@@ -89,4 +108,4 @@ if __name__ == "__main__":
     else:
         if not all((a.tenant, a.name, a.email)):
             p.error("provision requires --tenant --name --email")
-        provision(a.tenant, a.name, a.email, a.roles)
+        provision(a.tenant, a.name, a.email, a.roles, a.employee_id)

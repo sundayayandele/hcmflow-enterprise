@@ -100,3 +100,16 @@ def login(data: Login, request: Request):
 @app.get("/me")
 def me(p=Depends(principal)):
     return p
+
+
+@app.get("/access-profile")
+def access_profile(p=Depends(principal)):
+    return {
+        "tenant_id": p["tenant_id"],
+        "user_id": p["sub"],
+        "roles": p["roles"],
+        "employee_id": p.get("employee_id"),
+        "session_lifetime_seconds": 900,
+        "authentication": "local Argon2 staging; OIDC/MFA remains a production gate",
+        "tenant_selection": "signed membership claim; client tenant headers are not accepted",
+    }

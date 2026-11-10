@@ -17,7 +17,7 @@ flowchart LR
   Prometheus --> Payroll
 ```
 
-Three small deployable Python services, one web image and one PostgreSQL process with three separately owned databases. Services do not join or read another service's tables. Identity owns tenants, memberships/login; workforce owns employee snapshots/import batches; payroll owns calendars, elements, rule metadata, run snapshots and results. Nigeria statutory is a domain within payroll initially; isolate it into a service when independently released jurisdiction packs justify the network cost. This avoids running a process for every feature on the first VPS.
+Four small deployable Python services, one web image and one PostgreSQL process with four separately owned databases. Services do not join or read another service's tables. Identity owns tenants, memberships/login; workforce owns employee snapshots/import batches; payroll owns calendars, elements, rule metadata, run snapshots and results. Nigeria statutory is a domain within payroll initially; isolate it into a service when independently released jurisdiction packs justify the network cost. This avoids running a process for every feature on the first VPS.
 
 API routes are `/api/{identity,workforce,payroll}/…`; internal OpenAPI is available directly inside the Compose network, blocked at ingress. Public integration keys/webhooks are deferred. Browser carries one authenticated tenant claim, never an arbitrary tenant header. Runtime reads/writes use tenant predicates plus transaction-local PostgreSQL RLS context. Connections clear context at transaction end. Database constraints enforce tenant-local employee-code, import-digest and payroll-idempotency uniqueness.
 
@@ -41,3 +41,8 @@ Separate database transactions include domain writes and an audit record. Runtim
 Phase 1 extracts workforce operations and employee services when workflows land. Phase 2 adds talent acquisition/development domains, notifications and governed analytics projections. No analytics service gets unrestricted cross-tenant operational SQL. Separate stateless workers and data/observability hosts before single-host capacity is exceeded. Use identical images for future dedicated-client cells. Kubernetes is deferred until multiple cells, HA or independent scaling justify it.
 
 A single VPS has no host-level HA. Start with measured capacity; under-200-employee pilot targets are hypotheses, not SLO guarantees. Off-site restore, latency and capacity evidence must precede production contracts.
+
+
+## Enrichment increment · 10 November 2026
+
+The workplace service adds typed operations, lifecycle, talent and employee-finance workflows in a separately owned fourth database, plus role-filtered operational summaries and staffing scenarios. Existing services add employee revisions and payroll evidence/comparison. See [scope and upgrade notes](ENRICHMENT_IMPLEMENTATION.md). These are initial workflows; production country-pack, payment and enterprise assurance gates remain unchanged.

@@ -4,4 +4,4 @@ rule_files: [/etc/prometheus/alerts.yml]
 scrape_configs:
   - job_name: hcmflow
     static_configs:
-      - targets: [identity:8000, workforce:8000, payroll:8000]
+      - targets: [identity:8000, workforce:8000, payroll:8000, workplace:8000]

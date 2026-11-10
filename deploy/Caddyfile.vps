@@ -16,6 +16,9 @@
     handle_path /api/workforce/* {
         reverse_proxy workforce:8000
     }
+    handle_path /api/workplace/* {
+        reverse_proxy workplace:8000
+    }
     handle_path /api/payroll/* {
         reverse_proxy payroll:8000
     }

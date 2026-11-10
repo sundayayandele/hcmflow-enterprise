@@ -19,3 +19,8 @@ Sessions stay in browser memory, never localStorage. Privileged local passwords 
 - Dependency/image/secret scans, production threat model and penetration review, data processing/retention agreements, privacy review and incident process.
 
 Do not put production employee data in GitHub Pages, CI artifacts, runner logs, issues or staging. Browser demo controls are UI demonstrations only. API permissions are authoritative. GitHub Pages publication exposes synthetic assets only and does not change source repository visibility.
+
+
+## Enrichment controls
+
+Workplace payloads (including candidate, case, claim and scenario details) are Fernet-encrypted in the new service store. Tenant IDs, opaque subjects/actors, kinds, states and versions remain plaintext for authorization/indexing. New tables use FORCE RLS; runtime audit modification is denied. Employee reads and transitions enforce own-record or explicit category roles; disciplinary records are HR-only. Financial approval never marks a claim paid or a benefit enrolled. Operator linking, tenant-wide HR/finance roles and shared staging keys remain limited pilot controls; they are not a replacement for production delegated scopes and identity hardening.

@@ -30,8 +30,8 @@ x-env: &env
   JWT_SECRET: ${JWT_SECRET:?Generate .env with scripts/configure.py}
   ENVIRONMENT: staging
   PYTHONDONTWRITEBYTECODE: '1'
-  NO_PROXY: identity,workforce,payroll,web,postgres,localhost,127.0.0.1
-  no_proxy: identity,workforce,payroll,web,postgres,localhost,127.0.0.1
+  NO_PROXY: identity,workforce,payroll,workplace,web,postgres,localhost,127.0.0.1
+  no_proxy: identity,workforce,payroll,workplace,web,postgres,localhost,127.0.0.1
 services:
   postgres:
     image: postgres:17.6-alpine
@@ -43,9 +43,11 @@ services:
       identity_DB_PASSWORD: ${IDENTITY_DB_PASSWORD:?}
       workforce_DB_PASSWORD: ${WORKFORCE_DB_PASSWORD:?}
       payroll_DB_PASSWORD: ${PAYROLL_DB_PASSWORD:?}
+      workplace_DB_PASSWORD: ${WORKPLACE_DB_PASSWORD:?}
       identity_MIGRATION_PASSWORD: ${IDENTITY_MIGRATION_PASSWORD:?}
       workforce_MIGRATION_PASSWORD: ${WORKFORCE_MIGRATION_PASSWORD:?}
       payroll_MIGRATION_PASSWORD: ${PAYROLL_MIGRATION_PASSWORD:?}
+      workplace_MIGRATION_PASSWORD: ${WORKPLACE_MIGRATION_PASSWORD:?}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./deploy/postgres-init.sh:/docker-entrypoint-initdb.d/01-hcmflow.sh:ro
@@ -77,6 +79,14 @@ services:
       SERVICE: payroll
       WORKFORCE_URL: http://workforce:8000
       DATABASE_URL: postgresql+psycopg://payroll_app:${PAYROLL_DB_PASSWORD}@postgres/payroll
+  workplace:
+    <<: *api
+    environment:
+      <<: *env
+      SERVICE: workplace
+      PII_KEY: ${PII_KEY:?}
+      WORKFORCE_URL: http://workforce:8000
+      DATABASE_URL: postgresql+psycopg://workplace_app:${WORKPLACE_DB_PASSWORD}@postgres/workplace
   web:
     build:
       context: frontend
@@ -89,13 +99,13 @@ services:
     security_opt: [no-new-privileges:true]
   edge:
     environment:
-      NO_PROXY: identity,workforce,payroll,web,postgres,localhost,127.0.0.1
-      no_proxy: identity,workforce,payroll,web,postgres,localhost,127.0.0.1
+      NO_PROXY: identity,workforce,payroll,workplace,web,postgres,localhost,127.0.0.1
+      no_proxy: identity,workforce,payroll,workplace,web,postgres,localhost,127.0.0.1
     image: caddy:2.10-alpine
     ports: ['127.0.0.1:8080:8080']
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
-    depends_on: [web, identity, workforce, payroll]
+    depends_on: [web, identity, workforce, payroll, workplace]
     mem_limit: 128m
     cpus: 0.5
     logging: *logging

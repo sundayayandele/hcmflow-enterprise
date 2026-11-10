@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { demoEmployees, capabilities } from './demo';
 import './style.css';
+import EnrichmentHub from './EnrichmentHub';
 
 type Employee = (typeof demoEmployees)[number];
 type Run = {
@@ -101,7 +102,11 @@ function App() {
       ['admin', 'payroll', 'approver', 'auditor'].includes(r),
     );
     const [e, r, c] = await Promise.all([
-      api('workforce/employees').then((r) => r.json()),
+      user?.roles.some((r) =>
+        ['admin', 'hr', 'payroll', 'approver', 'auditor', 'employee'].includes(r),
+      )
+        ? api('workforce/employees').then((r) => r.json())
+        : Promise.resolve([]),
       payrollAccess ? api('payroll/runs').then((r) => r.json()) : Promise.resolve([]),
       payrollAccess
         ? api('payroll/config').then((r) => r.json())
@@ -329,6 +334,7 @@ function App() {
     ['People', Users],
     ['Payroll', Wallet],
     ['Configuration', Settings2],
+    ['Enrichment hub', FileCheck2],
     ['Capability map', Layers],
     ['Readiness', ShieldCheck],
   ] as const;
@@ -500,17 +506,19 @@ function App() {
                 {page === 'Overview' ? 'YOUR PEOPLE, AT A GLANCE' : 'HCMFLOW ENTERPRISE'}
               </p>
               <h1>
-                {page === 'Overview'
-                  ? 'A good day starts with your people.'
-                  : page === 'People'
-                    ? 'Your people. All in one place.'
-                    : page === 'Payroll'
-                      ? 'Payroll, with a clear view.'
-                      : page === 'Configuration'
-                        ? 'Make payroll work your way.'
-                        : page === 'Readiness'
-                          ? 'A responsible path to launch.'
-                          : 'Room to grow. A plan to get there.'}
+                {page === 'Enrichment hub'
+                  ? 'Eight areas. One connected workspace.'
+                  : page === 'Overview'
+                    ? 'A good day starts with your people.'
+                    : page === 'People'
+                      ? 'Your people. All in one place.'
+                      : page === 'Payroll'
+                        ? 'Payroll, with a clear view.'
+                        : page === 'Configuration'
+                          ? 'Make payroll work your way.'
+                          : page === 'Readiness'
+                            ? 'A responsible path to launch.'
+                            : 'Room to grow. A plan to get there.'}
               </h1>
               <p>
                 {page === 'Overview'
@@ -865,6 +873,25 @@ function App() {
               </div>
             </>
           )}
+          <div hidden={page !== 'Enrichment hub'}>
+            <EnrichmentHub
+              demo={DEMO}
+              roles={
+                DEMO
+                  ? demoRole === 'payroll'
+                    ? ['admin', 'hr', 'payroll', 'finance', 'recruiter', 'talent']
+                    : ['hr', 'approver', 'finance', 'talent']
+                  : roles
+              }
+              actor={DEMO ? (demoRole === 'payroll' ? 'demo-payroll' : 'demo-reviewer') : user!.sub}
+              employees={employees}
+              runs={runs}
+              api={api}
+              onEmployeeAmended={(e) =>
+                setEmployees((old) => old.map((p) => (p.id === e.id ? { ...p, ...e } : p)))
+              }
+            />
+          </div>
           {page === 'Capability map' && (
             <>
               <div className="roadmap-intro">

@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import String, JSON, UniqueConstraint, select
 from sqlalchemy.orm import Mapped, mapped_column
 from hcm.common import (
+    Audit,
     Base,
     TenantRow,
     application,
@@ -351,6 +352,10 @@ def preview(
             os.environ.get("WORKFORCE_URL", "http://workforce:8000") + "/employees",
             headers={"Authorization": request.headers["authorization"]},
             timeout=10,
+            params={
+                "as_of": calendar.data["start"],
+                "period_end": calendar.data["end"],
+            },
         )
         response.raise_for_status()
         employees = {e["id"]: e for e in response.json()}
@@ -363,7 +368,7 @@ def preview(
                 422, "Employee is not in the authorized workforce snapshot"
             )
         e = employees[id]
-        if e["effective_from"] > calendar.data["start"]:
+        if e["effective_from"] > calendar.data["start"] or e.get("changes_in_period"):
             raise HTTPException(
                 422,
                 "Mid-period employment requires reviewed proration; not supported in this release",
@@ -372,7 +377,7 @@ def preview(
             {
                 "employee_id": id,
                 "employee_code": e["employee_code"],
-                "employee_version": e["version"],
+                "employee_version": e.get("record_version", e["version"]),
                 "source": e["source"],
                 **calc(base, rule.data, elements),
             }
@@ -540,3 +545,164 @@ def export(
             "Content-Disposition": f'attachment; filename="simulation-{kind}-{id}.csv"'
         },
     )
+
+
+class RuleEvidence(TenantRow, Base):
+    __tablename__ = "rule_evidence_drafts"
+    version: Mapped[str] = mapped_column(String(50))
+    __table_args__ = (UniqueConstraint("tenant_id", "version"),)
+    maker: Mapped[str] = mapped_column(String(36))
+    reviewer: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    data: Mapped[dict] = mapped_column(JSON)
+    state: Mapped[str] = mapped_column(String(30), default="draft")
+
+
+class EvidenceInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    version: str = Field(min_length=2, max_length=50)
+    title: str = Field(min_length=3, max_length=120)
+    authority: str = Field(min_length=3, max_length=200)
+    source_reference: str = Field(min_length=5, max_length=500)
+    effective_from: date
+    effective_to: date
+    applicability: str = Field(min_length=3, max_length=500)
+    calculation_specification: str = Field(min_length=5, max_length=2000)
+    test_evidence: str = Field(min_length=5, max_length=1000)
+
+    @model_validator(mode="after")
+    def dates(self):
+        if self.effective_to < self.effective_from:
+            raise ValueError("Invalid effective dates")
+        return self
+
+
+@app.get("/rule-evidence")
+def evidence_list(p=Depends(principal), db=Depends(database)):
+    require(p, "admin", "payroll", "approver", "auditor")
+    return [
+        {
+            "id": r.id,
+            "state": r.state,
+            "production_eligible": False,
+            "maker": r.maker,
+            "reviewer": r.reviewer,
+            **r.data,
+        }
+        for r in db.scalars(
+            select(RuleEvidence).where(RuleEvidence.tenant_id == p["tenant_id"])
+        )
+    ]
+
+
+@app.post("/rule-evidence", status_code=201)
+def evidence_create(
+    data: EvidenceInput, request: Request, p=Depends(principal), db=Depends(database)
+):
+    require(p, "admin", "payroll")
+    row = RuleEvidence(
+        tenant_id=p["tenant_id"],
+        maker=p["sub"],
+        version=data.version,
+        data=data.model_dump(mode="json"),
+    )
+    db.add(row)
+    db.flush()
+    audit(db, p, "rule_evidence.drafted", row.id, request)
+    return {"id": row.id, "state": row.state, "production_eligible": False, **row.data}
+
+
+@app.post("/rule-evidence/{id}/review")
+def evidence_review(
+    id: str, request: Request, p=Depends(principal), db=Depends(database)
+):
+    require(p, "approver")
+    row = owned(db, RuleEvidence, id, p, True)
+    if row.maker == p["sub"]:
+        raise HTTPException(403, "Evidence requires an independent reviewer")
+    if row.state != "draft":
+        raise HTTPException(409, "Evidence already reviewed")
+    row.reviewer = p["sub"]
+    row.state = "evidence_reviewed"
+    audit(db, p, "rule_evidence.reviewed", id, request)
+    return {
+        "id": id,
+        "state": row.state,
+        "production_eligible": False,
+        "notice": "Metadata review is not statutory certification and does not enable production calculations",
+    }
+
+
+@app.get("/runs/{id}/comparison")
+def compare(
+    id: str,
+    baseline_id: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database),
+):
+    require(p, "admin", "payroll", "approver", "auditor")
+    current = owned(db, Run, id, p)
+    previous = owned(db, Run, baseline_id, p)
+    old = {r["employee_id"]: r for r in previous.snapshot["results"]}
+    new = {r["employee_id"]: r for r in current.snapshot["results"]}
+    lines = []
+    for employee_id in sorted(old.keys() | new.keys()):
+        a = old.get(employee_id)
+        b = new.get(employee_id)
+        lines.append(
+            {
+                "employee_id": employee_id,
+                "employee_code": (b or a)["employee_code"],
+                "change": "joined"
+                if a is None
+                else "left"
+                if b is None
+                else "retained",
+                "net_before": a["net"] if a else "0.00",
+                "net_after": b["net"] if b else "0.00",
+                "net_delta": str(
+                    money(
+                        Decimal(b["net"] if b else "0")
+                        - Decimal(a["net"] if a else "0")
+                    )
+                ),
+            }
+        )
+    audit(db, p, "payroll.compared", id, request, baseline_id=baseline_id)
+    return {
+        "simulation": True,
+        "current_id": id,
+        "baseline_id": baseline_id,
+        "employees": lines,
+        "net_delta": str(
+            money(
+                Decimal(current.snapshot["totals"]["net"])
+                - Decimal(previous.snapshot["totals"]["net"])
+            )
+        ),
+    }
+
+
+@app.get("/runs/{id}/evidence-pack")
+def evidence_pack(
+    id: str, request: Request, p=Depends(principal), db=Depends(database)
+):
+    require(p, "admin", "payroll", "approver", "auditor")
+    row = owned(db, Run, id, p)
+    events = db.scalars(
+        select(Audit).where(Audit.tenant_id == p["tenant_id"], Audit.resource == id)
+    ).all()
+    audit(db, p, "payroll.evidence_exported", id, request)
+    return {
+        "simulation": True,
+        "run_id": id,
+        "state": row.state,
+        "maker": row.maker,
+        "checker": row.checker,
+        "snapshot": row.snapshot,
+        "audit": [
+            {"actor": e.actor, "action": e.action, "at": e.at, "trace_id": e.trace_id}
+            for e in events
+        ],
+        "notice": "Checksum identifies a snapshot; this is not a digital signature, WORM archive or statutory approval",
+    }

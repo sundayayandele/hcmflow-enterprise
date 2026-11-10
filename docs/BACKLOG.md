@@ -36,3 +36,19 @@ Owners are accountable roles, not assigned people. Estimate and acceptance sign-
 | INT-01 | 4 / P2 | Public API clients, scopes, quotas, webhook signatures/retries and integration credentials | Engineering | Planned |
 
 Phase 0 can be reviewed with invented data. Phase 1 production payroll release is blocked until statutory/HR/finance approvals and production operational gates are independently evidenced. A feature’s presence in a reference form is not approval or evidence of implementation.
+
+
+## Eight-area enrichment started · 10 November 2026
+
+The original phase table above describes full workflow acceptance, not the smaller first increment. Each area now has a tracked initial implementation and explicit remaining work in [ENRICHMENT_IMPLEMENTATION.md](ENRICHMENT_IMPLEMENTATION.md). First increments do not close TAX-01/02/03, PAY-02/03, SEC-02 or OPS-02. Public Pages publication was completed after the original table was written; repository visibility was changed to public by the owner.
+
+| Area | First increment | State |
+|---|---|---|
+| Payroll | Draft rule evidence, separate metadata review, run comparisons and simulation evidence packs | Implemented for staging; production statutory/bank gates outstanding |
+| Employee records | Versioned effective-dated Core HR amendments, dated reads and history | Implemented; imported-source reconciliation outstanding |
+| Daily experience | Linked-employee leave/time/service requests and HR/checker review | Initial workflow; advanced policies/manager scope outstanding |
+| Lifecycle | Candidate stages, onboarding/exit tasks and restricted cases | Initial workflow; conversion/integrations outstanding |
+| Talent | Goals, learning assignments and separate completion verification | Initial records; review cycles/LMS/succession outstanding |
+| Finance | Claims, independent approval and benefit-request intent | Initial workflow; providers and reimbursements outstanding |
+| Enterprise | Fourth service/RLS, encrypted payloads, category scopes and audit/policy views | Initial controls; SSO/MFA/delegated scopes/recovery outstanding |
+| Insights | Role-filtered current counts and staffing cost scenarios | Initial projections; governed historical analytics outstanding |

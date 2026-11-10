@@ -1613,3 +1613,230 @@ nav {
   top: 0;
   left: 0;
 }
+.enrichment-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.enrichment-tabs > button {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 12px;
+  gap: 9px;
+}
+.enrichment-tabs > button.selected {
+  background: #edf5ed;
+  border-color: #abc7ad;
+}
+.enrichment-tabs > button > span {
+  font-size: 10px;
+  color: #8ca180;
+  font-weight: 700;
+}
+.enrichment-tabs strong,
+.enrichment-tabs small {
+  display: block;
+}
+.enrichment-tabs strong {
+  font-size: 11px;
+  font-weight: 650;
+}
+.enrichment-tabs small {
+  font-size: 9px;
+  color: #899782;
+  line-height: 1.6;
+  margin-top: 5px;
+}
+.hub-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin-bottom: 24px;
+}
+.hub-form {
+  padding: 24px;
+  min-width: 0;
+}
+.hub-form > h3 {
+  margin-bottom: 17px;
+}
+.hub-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.hub-form fieldset:disabled {
+  opacity: 0.6;
+}
+.hub-form form > .primary,
+.hub-form fieldset > .primary {
+  width: 100%;
+  margin-top: 6px;
+}
+.hub-form textarea {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  border: 1px solid #dfe7d9;
+  border-radius: 5px;
+  padding: 10px;
+  color: #354b2c;
+}
+.hub-subheading {
+  margin: 25px 0 13px;
+}
+.hub-list {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.hub-list > h3 {
+  margin-bottom: 18px;
+}
+.hub-register {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border-top: 1px solid var(--line);
+  padding: 16px 0;
+  flex-wrap: wrap;
+}
+.hub-register strong {
+  font-size: 12px;
+}
+.hub-register p {
+  font-size: 10px;
+  color: #84947b;
+  margin-top: 7px;
+}
+.hub-records {
+  display: grid;
+  gap: 18px;
+}
+.hub-record-body {
+  padding: 0 24px 20px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #6f8165;
+}
+.hub-record .eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 8px;
+}
+.hub-task {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 10px 0;
+  font-size: 12px;
+}
+.hub-task input {
+  accent-color: var(--green);
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+.hub-json {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #f4f7f1;
+  color: #617959;
+  font: 11px/1.8 monospace;
+  padding: 15px;
+  border-radius: 6px;
+  max-height: 350px;
+  overflow: auto;
+}
+.hub-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.hub-status-grid > div {
+  padding: 16px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #f8faf6;
+  min-width: 0;
+}
+.hub-status-grid strong,
+.hub-status-grid small {
+  display: block;
+}
+.hub-status-grid strong {
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+.hub-status-grid small {
+  font-size: 10px;
+  color: #92a085;
+  margin-top: 8px;
+}
+.evidence-download {
+  display: flex;
+  width: 100%;
+  margin: 8px 0;
+}
+.hub-form .config-item > p {
+  font-size: 11px;
+  color: #8b9a82;
+  line-height: 1.8;
+  margin-top: 7px;
+}
+.hub-form details {
+  margin: 20px 0;
+  font-size: 12px;
+}
+.hub-form .inline-warning {
+  padding: 14px;
+  margin-top: 22px;
+}
+.hub-form .muted {
+  line-height: 1.8;
+}
+@media (max-width: 1200px) {
+  .enrichment-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 850px) {
+  .hub-columns {
+    grid-template-columns: 1fr;
+  }
+  .hub-form {
+    padding: 20px;
+  }
+  .hub-register {
+    align-items: flex-start;
+  }
+  .hub-status-grid strong {
+    font-size: 18px;
+  }
+}
+@media (max-width: 650px) {
+  .enrichment-tabs > button {
+    padding: 12px 9px;
+  }
+  .enrichment-tabs strong {
+    font-size: 10px;
+  }
+  .enrichment-tabs small {
+    font-size: 8px;
+  }
+  .hub-record-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .hub-list {
+    padding: 20px 16px;
+  }
+}

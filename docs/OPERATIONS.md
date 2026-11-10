@@ -50,3 +50,8 @@ Record release SHA/image digests, schema version and configuration fingerprint b
 ## Monitoring and incidents
 
 `docker compose ps`, `/api/{service}/health` and internal `/metrics` support health review. Logs are rotated JSON without request bodies/credentials. Alert-rule templates cover down services, server error rate and p95 latency; integrate notification delivery before relying on them. Collect only redacted diagnostics. Tenant audit is separate from diagnostic logs. Payroll snapshot outages produce 503 without creating a run. On security/recovery failure disable write access, retain evidence and consult incident owners; do not bypass statutory gates to finish a run.
+
+
+## Enrichment service upgrade
+
+For existing staging databases, add workplace credentials without replacing existing secrets, provision the fourth service database with the idempotent init script, and run additive migrations before restarting services. Follow the exact sequence in [ENRICHMENT_IMPLEMENTATION.md](ENRICHMENT_IMPLEMENTATION.md). Keep the existing database volume and a verified backup. The new workflow data is included in full-cluster backups; the disposable four-database logical CI drill remains narrower than full off-site disaster recovery.

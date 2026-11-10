@@ -51,10 +51,14 @@ docker compose --profile monitoring up -d prometheus
 
 CI creates and destroys a temporary Compose staging environment on GitHub-hosted runners. **Runners are not persistent hosting**. The VPS deployment is deferred at the user's request.
 
+## Eight-area enrichment: first increments
+
+Open **Enrichment hub** to review payroll evidence, employee history, daily HR, lifecycle tasks, talent/learning, finance/benefits, access/audit controls and staffing scenarios. This begins each area; full enterprise workflows and all production gates remain outstanding. See [implementation scope, review steps and upgrade instructions](docs/ENRICHMENT_IMPLEMENTATION.md).
+
 ## Implemented slice
 
 - Tenant provisioning, Argon2 password login, short-lived tenant-bound JWTs and role checks.
-- Separate identity, workforce and payroll databases/runtime users on one PostgreSQL instance; FORCE RLS on tenant-owned workforce/payroll tables.
+- Separate identity, workforce, payroll and workplace databases/runtime users on one PostgreSQL instance; FORCE RLS on tenant-owned workforce/payroll tables.
 - Employee records with encrypted profile payloads and explicit Core HR/import source ownership. New imports support CSV, XLSX, XML and JSON, validation preview, all-or-nothing commit and replay safety. Existing-code updates are deliberately rejected pending source reconciliation workflow.
 - Configurable calendars and effective-dated fixed/percentage-of-base elements through the internal API; monthly preview setup in the UI. Explicit per-period base amounts, decimal arithmetic, synthetic gross-to-net breakdowns, frozen input/rule snapshots, idempotency and maker-checker simulation approval.
 - Watermarked simulation register, payslip summary and balanced control journal CSVs. GTBank, statutory schedules and production finalization return explicit blocked responses.
@@ -62,6 +66,6 @@ CI creates and destroys a temporary Compose staging environment on GitHub-hosted
 
 ## Release limits
 
-No supplied statutory approval or completed review was found. No production statutory calculations are implemented. The synthetic flat deduction engine does not model PAYE bands, annualization, reliefs, applicability, pension rules, levies, final pay, retroactivity or statutory filing. No bank identifiers are collected; there is no GTBank format guess. Payslip CSVs are summaries, not final PDF payslips. Journal control accounts are demonstration accounts and do not implement customer chart-of-accounts posting. Employee self-service APIs have own-record restrictions, but employee UI linking, scoped manager grants, SSO/MFA and user lifecycle management require the next phase. Prototype shared signing keys must be replaced by asymmetric OIDC/service identity before production. No live data may be used until the release gates pass.
+No supplied statutory approval or completed review was found. No production statutory calculations are implemented. The synthetic flat deduction engine does not model PAYE bands, annualization, reliefs, applicability, pension rules, levies, final pay, retroactivity or statutory filing. No bank identifiers are collected; there is no GTBank format guess. Payslip CSVs are summaries, not final PDF payslips. Journal control accounts are demonstration accounts and do not implement customer chart-of-accounts posting. Linked employees now have own-record workflow access through the Enrichment hub; operator CLI linking, initial HR review and simple state machines are implemented. Scoped manager grants, SSO/MFA and user lifecycle management require the next phase. Prototype shared signing keys must be replaced by asymmetric OIDC/service identity before production. No live data may be used until the release gates pass.
 
 See [architecture](docs/ARCHITECTURE.md), [capability map](docs/CAPABILITY_MAP.md), [phased backlog](docs/BACKLOG.md), [security](docs/SECURITY.md), [operations](docs/OPERATIONS.md), [reference review](docs/REFERENCE_REVIEW.md), and [validation](docs/VALIDATION.md).
