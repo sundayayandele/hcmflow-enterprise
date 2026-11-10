@@ -12,6 +12,13 @@ type Slip = {
 type Payload = {
   simulation: boolean;
   company: string;
+  employee_name?: string;
+  bank_account?: {
+    bank_name: string;
+    account_name: string;
+    account_number: string;
+    demo?: boolean;
+  };
   calendar: { start: string; end: string; pay_date: string };
   checksum: string;
   result: {
@@ -41,41 +48,116 @@ const todayLagos = () =>
   }).format(new Date());
 const amount = (value: string) =>
   `NGN ${Number(value).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`;
-// ASCII PDF with byte-accurate cross-reference offsets; no third-party PDF runtime.
+function payRows(payload: Payload) {
+  const r = payload.result;
+  return [
+    ...(r.lines || []).map((l) => [l.label, l.kind.replaceAll('_', ' '), amount(l.amount)]),
+    ['Gross pay', 'Total', amount(r.gross)],
+    ['Deductions', 'Total', amount(r.deductions)],
+    ['Reimbursements', 'Total', amount(r.reimbursements || '0')],
+    ['Net pay', 'Take home', amount(r.net)],
+  ];
+}
+const demoBank = (person: (typeof demoEmployees)[number]) => ({
+  bank_name: 'Example Demo Bank',
+  account_name: person.full_name,
+  account_number: `DEMO-${person.employee_code}`,
+  demo: true,
+});
+// Vector PDF tables with wrapped cells, repeated headers and byte-accurate offsets.
 function downloadPdf(payload: Payload) {
   const r = payload.result;
-  const text = [
-    'HCMFLOW - EMPLOYEE PAYSLIP',
-    'SIMULATION - NOT FOR PAYMENT',
-    payload.company,
-    `Employee: ${r.employee_code}`,
-    `Period: ${payload.calendar.start} to ${payload.calendar.end}`,
-    `Payment date: ${payload.calendar.pay_date}`,
-    '',
-    ...(r.lines || []).map((l) => `${l.label} (${l.kind}): ${amount(l.amount)}`),
-    '',
-    `Gross: ${amount(r.gross)}`,
-    `Deductions: ${amount(r.deductions)}`,
-    `Reimbursements: ${amount(r.reimbursements || '0')}`,
-    `Net pay: ${amount(r.net)}`,
-    '',
-    'Availability does not confirm bank payment.',
-    `Snapshot checksum: ${payload.checksum}`,
-  ];
-  const lines = text.flatMap((t) => t.replace(/[^\x20-\x7E]/g, '?').match(/.{1,85}/g) || ['']);
-  const chunks: string[][] = [];
-  for (let i = 0; i < lines.length; i += 44) chunks.push(lines.slice(i, i + 44));
-  const objects = ['', '', '<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>'];
+  const ascii = (text: string) => text.replace(/[^\x20-\x7E]/g, '?');
+  const escape = (text: string) => ascii(text).replace(/([\\()])/g, '\\$1');
+  const wrap = (text: string, width: number) => {
+    const words = ascii(text).match(new RegExp(`.{1,${width}}(?:\\s|$)|.{1,${width}}`, 'g')) || [
+      '',
+    ];
+    return words.map((w) => w.trim());
+  };
+  const streams: string[] = [];
+  let content = '',
+    y = 800;
+  const text = (value: string, x: number, at: number, size = 10) => {
+    content += `BT /F1 ${size} Tf ${x} ${at} Td (${escape(value)}) Tj ET\n`;
+  };
+  const line = (x1: number, y1: number, x2: number, y2: number) => {
+    content += `0.75 w ${x1} ${y1} m ${x2} ${y2} l S\n`;
+  };
+  const newPage = () => {
+    if (content) streams.push(content);
+    content = '';
+    y = 800;
+    for (const name of wrap(payload.company, 55)) {
+      text(name, 40, y, 15);
+      y -= 20;
+    }
+    text('EMPLOYEE PAYSLIP | SIMULATION - NOT FOR PAYMENT', 40, y);
+    y -= 24;
+    text(`Employee: ${payload.employee_name || r.employee_code} | ${r.employee_code}`, 40, y);
+    y -= 18;
+    text(`Period: ${payload.calendar.start} to ${payload.calendar.end}`, 40, y);
+    y -= 18;
+    text(`Payment date: ${payload.calendar.pay_date}`, 40, y);
+    y -= 24;
+    const bank = payload.bank_account;
+    for (const detail of bank
+      ? [
+          `Salary bank: ${bank.bank_name}${bank.demo ? ' (FICTIONAL DEMO)' : ''}`,
+          `Account name: ${bank.account_name}`,
+          `Account number: ${bank.account_number}`,
+        ]
+      : ['Salary bank account: Not provided in archived payslip']) {
+      for (const part of wrap(detail, 80)) {
+        text(part, 40, y);
+        y -= 16;
+      }
+    }
+    y -= 15;
+    text('SALARY BREAKDOWN AND DEDUCTIONS', 40, y);
+    y -= 18;
+  };
+  const row = (cells: string[], header = false) => {
+    const columns = [40, 345, 435, 555],
+      widths = [48, 13, 17];
+    const wrapped = cells.map((cell, i) => wrap(cell, widths[i]));
+    const height = Math.max(...wrapped.map((c) => c.length)) * 14 + 16;
+    if (header) content += `0.92 g 40 ${y - height} 515 ${height} re f 0 g\n`;
+    for (let i = 0; i < columns.length; i++) line(columns[i], y, columns[i], y - height);
+    line(40, y, 555, y);
+    line(40, y - height, 555, y - height);
+    wrapped.forEach((values, i) =>
+      values.forEach((value, j) => text(value, columns[i] + 8, y - 17 - j * 14, 9)),
+    );
+    y -= height;
+  };
+  newPage();
+  row(['Description', 'Type', 'Amount (NGN)'], true);
+  for (const cells of payRows(payload)) {
+    const required = Math.max(...cells.map((v, i) => wrap(v, [48, 13, 17][i]).length)) * 14 + 16;
+    if (y - required < 95) {
+      newPage();
+      row(['Description', 'Type', 'Amount (NGN)'], true);
+    }
+    row(cells);
+  }
+  if (y < 110) newPage();
+  y -= 25;
+  text('Availability does not confirm bank payment.', 40, y);
+  for (const part of wrap(`Snapshot checksum: ${payload.checksum}`, 85)) {
+    y -= 14;
+    text(part, 40, y, 8);
+  }
+  streams.push(content);
+  const objects = ['', '', '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
   const pages: number[] = [];
-  chunks.forEach((chunk) => {
-    const page = objects.length + 1,
-      stream = page + 1;
+  streams.forEach((stream) => {
+    const page = objects.length + 1;
     pages.push(page);
     objects.push(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${stream} 0 R >>`,
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents ${page + 1} 0 R >>`,
     );
-    const content = `BT /F1 10 Tf 40 790 Td 16 TL ${chunk.map((l) => `(${l.replace(/([\\()])/g, '\\$1')}) Tj T*`).join('\n')} ET`;
-    objects.push(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+    objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}endstream`);
   });
   objects[0] = '<< /Type /Catalog /Pages 2 0 R >>';
   objects[1] = `<< /Type /Pages /Kids [${pages.map((p) => `${p} 0 R`).join(' ')}] /Count ${pages.length} >>`;
@@ -146,6 +228,8 @@ export default function PayslipPortal({
       payloads.set(id, {
         simulation: true,
         company: 'HCMFlow Demo Company',
+        employee_name: person.full_name,
+        bank_account: demoBank(person),
         calendar: { start, end, pay_date: pay },
         checksum: 'SYNTHETIC-SAMPLE',
         result: {
@@ -178,6 +262,8 @@ export default function PayslipPortal({
       payloads.set(id, {
         simulation: true,
         company: 'HCMFlow Demo Company',
+        employee_name: person.full_name,
+        bank_account: demoBank(person),
         calendar: run.snapshot.calendar,
         checksum: run.snapshot.checksum,
         result,
@@ -355,37 +441,66 @@ export default function PayslipPortal({
             <button onClick={() => setSelected(null)}>Close payslip</button>
           </div>
           <p className="pill">SIMULATION — NOT FOR PAYMENT</p>
-          <h3>{selected.company}</h3>
+          <header className="payslip-employer">
+            <span className="payslip-monogram" aria-hidden="true">
+              {selected.company.slice(0, 1)}
+            </span>
+            <div>
+              <small>EMPLOYER</small>
+              <h3>{selected.company}</h3>
+            </div>
+          </header>
+          <p>
+            Employee: {selected.employee_name || selected.result.employee_code} ·{' '}
+            {selected.result.employee_code}
+          </p>
           <p>
             Period: {selected.calendar.start} – {selected.calendar.end} · Payment date:{' '}
             {selected.calendar.pay_date}
           </p>
-          <dl>
-            {(selected.result.lines || []).map((l, i) => (
-              <div key={i}>
-                <dt>
-                  {l.label} ({l.kind})
-                </dt>
-                <dd>{amount(l.amount)}</dd>
-              </div>
-            ))}
-            <div>
-              <dt>Gross pay</dt>
-              <dd>{amount(selected.result.gross)}</dd>
-            </div>
-            <div>
-              <dt>Deductions</dt>
-              <dd>{amount(selected.result.deductions)}</dd>
-            </div>
-            <div>
-              <dt>Reimbursements</dt>
-              <dd>{amount(selected.result.reimbursements || '0')}</dd>
-            </div>
-            <div className="payslip-net">
-              <dt>Net pay</dt>
-              <dd>{amount(selected.result.net)}</dd>
-            </div>
-          </dl>
+          <section className="payslip-bank" aria-label="Salary bank account">
+            <h3>Salary bank account</h3>
+            {selected.bank_account ? (
+              <>
+                <p>
+                  <strong>Bank:</strong> {selected.bank_account.bank_name}
+                </p>
+                <p>
+                  <strong>Account name:</strong> {selected.bank_account.account_name}
+                </p>
+                <p>
+                  <strong>Account number:</strong> {selected.bank_account.account_number}
+                </p>
+                {selected.bank_account.demo && (
+                  <small>Fictional demo account — not for payment.</small>
+                )}
+              </>
+            ) : (
+              <p>Not provided in this archived payslip.</p>
+            )}
+          </section>
+          <div className="payslip-breakdown">
+            <table aria-label="Salary breakdown and deductions">
+              <caption>Salary breakdown and deductions</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Description</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Amount (NGN)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payRows(selected).map((cells, i) => (
+                  <tr key={i} className={cells[0] === 'Net pay' ? 'payslip-net' : ''}>
+                    <th scope="row">{cells[0]}</th>
+                    <td>{cells[1]}</td>
+                    <td>{cells[2]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
           <small>Snapshot: {selected.checksum}. Availability does not confirm bank payment.</small>
         </article>
       )}

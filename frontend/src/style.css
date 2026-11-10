@@ -1906,3 +1906,71 @@ nav {
     flex-wrap: wrap;
   }
 }
+
+.payslip-employer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 20px 0;
+}
+.payslip-employer h3 {
+  margin: 4px 0 0;
+}
+.payslip-monogram {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #14533e;
+  color: white;
+  font-size: 26px;
+  font-weight: 700;
+}
+.payslip-bank {
+  background: #f4f8f5;
+  padding: 18px;
+  border: 1px solid #dce7df;
+  border-radius: 10px;
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+.payslip-bank p {
+  margin: 8px 0;
+}
+.payslip-breakdown {
+  overflow-x: auto;
+  margin: 24px 0;
+}
+.payslip-breakdown table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.payslip-breakdown caption {
+  text-align: left;
+  font-weight: 700;
+  padding: 0 0 14px;
+}
+.payslip-breakdown th,
+.payslip-breakdown td {
+  border: 1px solid #dce7df;
+  padding: 14px;
+  text-align: left;
+  white-space: normal;
+}
+.payslip-breakdown thead {
+  background: #f0f6f2;
+}
+.payslip-breakdown th[scope='row'] {
+  font-weight: 500;
+  min-width: 180px;
+}
+.payslip-breakdown td:last-child,
+.payslip-breakdown th:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+.payslip-breakdown .payslip-net {
+  background: #edf6ef;
+  font-size: 16px;
+}
