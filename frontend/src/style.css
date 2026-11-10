@@ -1840,3 +1840,69 @@ nav {
     padding: 20px 16px;
   }
 }
+
+.payslip-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  margin: 24px 0;
+}
+.payslip-controls label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.payslip-controls input,
+.payslip-controls select {
+  padding: 10px;
+  border: 1px solid #d8e2dc;
+  border-radius: 8px;
+  background: white;
+  max-width: 100%;
+}
+.payslip-list {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+.payslip-list table {
+  width: 100%;
+}
+.payslip-list small {
+  display: block;
+}
+.payslip-document {
+  padding: 24px;
+}
+.payslip-document dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid #e4ebe6;
+}
+.payslip-document dd {
+  margin: 0;
+  white-space: nowrap;
+}
+.payslip-document small {
+  overflow-wrap: anywhere;
+}
+.payslip-net {
+  color: #086646;
+  font-size: 20px;
+  font-weight: 700;
+}
+.payslip-portal button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+@media (max-width: 650px) {
+  .payslip-controls label {
+    width: 100%;
+  }
+  .payslip-document dl > div {
+    flex-wrap: wrap;
+  }
+}

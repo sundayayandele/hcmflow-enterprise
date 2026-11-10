@@ -1,4 +1,7 @@
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
+import json
+from cryptography.fernet import Fernet
 from decimal import Decimal, ROUND_HALF_UP
 import csv
 import io
@@ -43,6 +46,60 @@ class Run(TenantRow, Base):
     checker: Mapped[str | None] = mapped_column(String(36), nullable=True)
     state: Mapped[str] = mapped_column(String(30), default="preview")
     snapshot: Mapped[dict] = mapped_column(JSON)
+
+
+class PayslipArchive(TenantRow, Base):
+    __tablename__ = "payslip_archives"
+    __table_args__ = (UniqueConstraint("tenant_id", "run_id", "employee_id"),)
+    run_id: Mapped[str] = mapped_column(String(36))
+    employee_id: Mapped[str] = mapped_column(String(36))
+    employee_code: Mapped[str] = mapped_column(String(80))
+    period_start: Mapped[str] = mapped_column(String(10))
+    period_end: Mapped[str] = mapped_column(String(10))
+    pay_date: Mapped[str] = mapped_column(String(10))
+    sealed: Mapped[str] = mapped_column(String)
+
+
+def payslip_today():
+    return datetime.now(ZoneInfo("Africa/Lagos")).date().isoformat()
+
+
+def archive_payslips(db, row, p, request):
+    existing = set(
+        db.scalars(
+            select(PayslipArchive.employee_id).where(
+                PayslipArchive.tenant_id == p["tenant_id"],
+                PayslipArchive.run_id == row.id,
+            )
+        ).all()
+    )
+    calendar = row.snapshot["calendar"]
+    for result in row.snapshot["results"]:
+        if result["employee_id"] in existing:
+            continue
+        payload = {
+            "simulation": True,
+            "company": p.get("tenant_name", "HCMFlow tenant"),
+            "currency": "NGN",
+            "calendar": calendar,
+            "result": result,
+            "checksum": row.snapshot["checksum"],
+        }
+        slip = PayslipArchive(
+            tenant_id=p["tenant_id"],
+            run_id=row.id,
+            employee_id=result["employee_id"],
+            employee_code=result["employee_code"],
+            period_start=calendar["start"],
+            period_end=calendar["end"],
+            pay_date=calendar["pay_date"],
+            sealed=Fernet(os.environ["PII_KEY"].encode())
+            .encrypt(json.dumps(payload).encode())
+            .decode(),
+        )
+        db.add(slip)
+        existing.add(result["employee_id"])
+    audit(db, p, "payslips.archived", row.id, request)
 
 
 class CalendarInput(BaseModel):
@@ -453,6 +510,7 @@ def approve(
         raise HTTPException(409, "Run is no longer awaiting review")
     row.checker = p["sub"]
     row.state = "approved_simulation"
+    archive_payslips(db, row, p, request)
     audit(
         db,
         p,
@@ -496,6 +554,8 @@ def export(
         )
     if row.state != "approved_simulation":
         raise HTTPException(409, "Independent review required before simulation export")
+    if not privileged and row.snapshot["calendar"]["pay_date"] > payslip_today():
+        raise HTTPException(404, "Payslip is not released")
     buf = io.StringIO()
     w = SafeCsvWriter(buf)
     if kind in ["register", "payslips"]:
@@ -738,3 +798,65 @@ def evidence_pack(
         ],
         "notice": "Checksum identifies a snapshot; this is not a digital signature, WORM archive or statutory approval",
     }
+
+
+@app.post("/runs/{id}/payslips")
+def backfill_payslips(
+    id: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
+):
+    require(p, "approver")
+    row = owned(db, Run, id, p, True)
+    if row.maker == p["sub"]:
+        raise HTTPException(403, "Independent checker required")
+    if row.state != "approved_simulation":
+        raise HTTPException(409, "Approved simulation required")
+    archive_payslips(db, row, p, request)
+    return {"status": "archived"}
+
+
+@app.get("/payslips")
+def my_payslips(p=Depends(principal), db=Depends(database, scope="function")):
+    rows = db.scalars(
+        select(PayslipArchive)
+        .where(
+            PayslipArchive.tenant_id == p["tenant_id"],
+            PayslipArchive.employee_id == (p.get("employee_id") or "unlinked"),
+        )
+        .order_by(PayslipArchive.period_start.desc())
+    ).all()
+    today = payslip_today()
+    return {
+        "today": today,
+        "timezone": "Africa/Lagos",
+        "slips": [
+            {
+                "id": r.id,
+                "employee_code": r.employee_code,
+                "period_start": r.period_start,
+                "period_end": r.period_end,
+                "pay_date": r.pay_date,
+                "available": r.pay_date <= today,
+                "simulation": True,
+            }
+            for r in rows
+        ],
+    }
+
+
+@app.get("/payslips/{id}")
+def my_payslip(
+    id: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
+):
+    row = owned(db, PayslipArchive, id, p)
+    if row.employee_id != p.get("employee_id") or row.pay_date > payslip_today():
+        raise HTTPException(404, "Payslip is not released or not yours")
+    audit(db, p, "payslip.viewed", row.id, request)
+    return json.loads(
+        Fernet(os.environ["PII_KEY"].encode()).decrypt(row.sealed.encode())
+    )

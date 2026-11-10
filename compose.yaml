@@ -77,6 +77,7 @@ services:
     environment:
       <<: *env
       SERVICE: payroll
+      PII_KEY: ${PII_KEY:?}
       WORKFORCE_URL: http://workforce:8000
       DATABASE_URL: postgresql+psycopg://payroll_app:${PAYROLL_DB_PASSWORD}@postgres/payroll
   workplace:

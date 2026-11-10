@@ -427,3 +427,92 @@ def test_failed_commit_cannot_acknowledge_a_successful_write(apps, monkeypatch):
             )
             == 0
         )
+
+
+def test_payslip_archive_release_ownership_and_immutable_snapshot(apps, monkeypatch):
+    _, _, client = apps
+    monkeypatch.setattr(payroll, "payslip_today", lambda: "2026-11-10")
+    with common.Session() as db:
+        run = payroll.Run(
+            tenant_id=A,
+            idempotency_key="payslip-test",
+            request_hash="x" * 64,
+            maker=ACTORS["admin"],
+            snapshot={
+                "calendar": {
+                    "start": "2026-11-01",
+                    "end": "2026-11-30",
+                    "pay_date": "2026-11-30",
+                },
+                "checksum": "sealed-checksum",
+                "results": [
+                    {
+                        "employee_id": EA,
+                        "employee_code": "EMP001",
+                        "gross": "100000.00",
+                        "deductions": "1000.00",
+                        "net": "99000.00",
+                        "lines": [],
+                    }
+                ],
+            },
+        )
+        db.add(run)
+        db.commit()
+        run_id = run.id
+    assert (
+        client.post(f"/runs/{run_id}/payslips", headers=headers("checker")).status_code
+        == 409
+    )
+    assert client.post(f"/runs/{run_id}/approve", headers=headers()).status_code == 403
+    assert (
+        client.get("/payslips", headers=headers("employee", employee=EA)).json()[
+            "slips"
+        ]
+        == []
+    )
+    assert (
+        client.post(f"/runs/{run_id}/approve", headers=headers("checker")).status_code
+        == 200
+    )
+    assert (
+        client.post(f"/runs/{run_id}/payslips", headers=headers("checker")).status_code
+        == 200
+    )
+    assert client.post(f"/runs/{run_id}/payslips", headers=headers()).status_code == 403
+    employee = headers("employee", employee=EA)
+    slips = client.get("/payslips?as_of=2099-01-01", headers=employee).json()
+    assert slips["today"] == "2026-11-10"
+    assert len(slips["slips"]) == 1
+    slip = slips["slips"][0]
+    assert slip["available"] is False and "net" not in slip and "result" not in slip
+    url = f"/payslips/{slip['id']}"
+    assert client.get(url, headers=employee).status_code == 404
+    assert (
+        client.get(f"/runs/{run_id}/exports/payslips", headers=employee).status_code
+        == 404
+    )
+    monkeypatch.setattr(payroll, "payslip_today", lambda: "2026-11-30")
+    assert (
+        client.get("/payslips", headers=employee).json()["slips"][0]["available"]
+        is True
+    )
+    assert client.get(url, headers=employee).json()["result"]["net"] == "99000.00"
+    for h in [
+        headers(),
+        headers("employee", employee=EB),
+        headers("employee", tenant=B, employee=EA),
+    ]:
+        assert client.get(url, headers=h).status_code == 404
+        assert client.get("/payslips", headers=h).json()["slips"] == []
+    with common.Session() as db:
+        run = db.get(payroll.Run, run_id)
+        run.snapshot = {**run.snapshot, "results": []}
+        db.commit()
+        sealed = db.get(payroll.PayslipArchive, slip["id"]).sealed
+        assert "99000" not in sealed
+    assert client.get(url, headers=employee).json()["result"]["net"] == "99000.00"
+    assert (
+        client.post(f"/runs/{run_id}/finalize", headers=headers("checker")).status_code
+        == 409
+    )

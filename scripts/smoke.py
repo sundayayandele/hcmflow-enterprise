@@ -230,6 +230,23 @@ print(
 # Enrichment acceptance against four independently owned PostgreSQL databases.
 provision(tenant, "linked@example.invalid", "employee", first["id"])
 linked = login(tenant, "linked@example.invalid")
+archive = call("GET", "/payroll/payslips", linked)
+assert len(archive["slips"]) == 1
+slip = archive["slips"][0]
+assert slip["employee_code"] == first["employee_code"]
+assert "result" not in slip and "net" not in slip
+call("GET", f"/payroll/payslips/{slip['id']}", b, 404)
+call("GET", f"/payroll/payslips/{slip['id']}", a, 404)
+if slip["available"]:
+    assert (
+        call("GET", f"/payroll/payslips/{slip['id']}", linked)["result"]["employee_id"]
+        == first["id"]
+    )
+else:
+    call("GET", f"/payroll/payslips/{slip['id']}", linked, 404)
+    call("GET", f"/payroll/runs/{id}/exports/payslips", linked, 404)
+call("POST", f"/payroll/runs/{id}/payslips", checker)
+assert len(call("GET", "/payroll/payslips", linked)["slips"]) == 1
 assert len(call("GET", "/workforce/employees/lookup", linked)) == 1
 call(
     "POST",
@@ -392,6 +409,7 @@ for service, table in [
     ("workplace", "work_items"),
     ("workforce", "employee_revisions"),
     ("payroll", "rule_evidence_drafts"),
+    ("payroll", "payslip_archives"),
 ]:
     code = f"from hcm.common import Session; from sqlalchemy import text; db=Session(); assert db.scalar(text('SELECT count(*) FROM {table}')) == 0; db.close()"
     subprocess.run(

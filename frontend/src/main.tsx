@@ -26,6 +26,7 @@ import {
 import { demoEmployees, capabilities } from './demo';
 import './style.css';
 import EnrichmentHub from './EnrichmentHub';
+import PayslipPortal from './PayslipPortal';
 
 type Employee = (typeof demoEmployees)[number];
 type Run = {
@@ -34,7 +35,7 @@ type Run = {
   maker: string;
   snapshot: {
     simulation: boolean;
-    calendar: { name: string; start: string; end: string };
+    calendar: { name: string; start: string; end: string; pay_date: string };
     totals: Record<string, string>;
     results: {
       employee_code: string;
@@ -333,6 +334,7 @@ function App() {
     ['Overview', LayoutDashboard],
     ['People', Users],
     ['Payroll', Wallet],
+    ['Payslips', Download],
     ['Configuration', Settings2],
     ['Enrichment hub', FileCheck2],
     ['Capability map', Layers],
@@ -506,19 +508,21 @@ function App() {
                 {page === 'Overview' ? 'YOUR PEOPLE, AT A GLANCE' : 'HCMFLOW ENTERPRISE'}
               </p>
               <h1>
-                {page === 'Enrichment hub'
-                  ? 'Eight areas. One connected workspace.'
-                  : page === 'Overview'
-                    ? 'A good day starts with your people.'
-                    : page === 'People'
-                      ? 'Your people. All in one place.'
-                      : page === 'Payroll'
-                        ? 'Payroll, with a clear view.'
-                        : page === 'Configuration'
-                          ? 'Make payroll work your way.'
-                          : page === 'Readiness'
-                            ? 'A responsible path to launch.'
-                            : 'Room to grow. A plan to get there.'}
+                {page === 'Payslips'
+                  ? 'Your payslips, always within reach.'
+                  : page === 'Enrichment hub'
+                    ? 'Eight areas. One connected workspace.'
+                    : page === 'Overview'
+                      ? 'A good day starts with your people.'
+                      : page === 'People'
+                        ? 'Your people. All in one place.'
+                        : page === 'Payroll'
+                          ? 'Payroll, with a clear view.'
+                          : page === 'Configuration'
+                            ? 'Make payroll work your way.'
+                            : page === 'Readiness'
+                              ? 'A responsible path to launch.'
+                              : 'Room to grow. A plan to get there.'}
               </h1>
               <p>
                 {page === 'Overview'
@@ -873,6 +877,7 @@ function App() {
               </div>
             </>
           )}
+          {page === 'Payslips' && <PayslipPortal demo={DEMO} api={api} runs={runs} />}
           <div hidden={page !== 'Enrichment hub'}>
             <EnrichmentHub
               demo={DEMO}
