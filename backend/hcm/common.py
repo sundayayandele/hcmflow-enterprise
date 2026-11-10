@@ -187,7 +187,7 @@ def application(title):
         return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     @app.get("/audit")
-    def history(p=Depends(principal), db=Depends(database)):
+    def history(p=Depends(principal), db=Depends(database, scope="function")):
         require(p, "admin", "auditor", "approver")
         return db.scalars(
             select(Audit)

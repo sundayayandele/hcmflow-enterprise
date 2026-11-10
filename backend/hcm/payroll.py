@@ -239,7 +239,7 @@ def readiness(p=Depends(principal)):
 
 
 @app.get("/config")
-def configs(p=Depends(principal), db=Depends(database)):
+def configs(p=Depends(principal), db=Depends(database, scope="function")):
     require(p, "admin", "payroll", "approver", "auditor")
     return {
         "calendars": [
@@ -267,7 +267,10 @@ def configs(p=Depends(principal), db=Depends(database)):
 
 @app.post("/calendars", status_code=201)
 def calendar(
-    data: CalendarInput, request: Request, p=Depends(principal), db=Depends(database)
+    data: CalendarInput,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "payroll")
     row = Config(
@@ -281,7 +284,10 @@ def calendar(
 
 @app.post("/elements", status_code=201)
 def element(
-    data: ElementInput, request: Request, p=Depends(principal), db=Depends(database)
+    data: ElementInput,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "payroll")
     row = Config(
@@ -294,7 +300,12 @@ def element(
 
 
 @app.post("/rules", status_code=201)
-def rule(data: RuleInput, request: Request, p=Depends(principal), db=Depends(database)):
+def rule(
+    data: RuleInput,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
+):
     require(p, "admin", "payroll")
     row = Rule(
         tenant_id=p["tenant_id"],
@@ -314,7 +325,10 @@ def rule(data: RuleInput, request: Request, p=Depends(principal), db=Depends(dat
 
 @app.post("/runs", status_code=201)
 def preview(
-    data: RunInput, request: Request, p=Depends(principal), db=Depends(database)
+    data: RunInput,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "payroll")
     digest = fingerprint(data.model_dump(mode="json"))
@@ -417,7 +431,7 @@ def preview(
 
 
 @app.get("/runs")
-def runs(p=Depends(principal), db=Depends(database)):
+def runs(p=Depends(principal), db=Depends(database, scope="function")):
     require(p, "admin", "payroll", "approver", "auditor")
     return db.scalars(
         select(Run).where(Run.tenant_id == p["tenant_id"]).order_by(Run.id)
@@ -425,7 +439,12 @@ def runs(p=Depends(principal), db=Depends(database)):
 
 
 @app.post("/runs/{id}/approve")
-def approve(id: str, request: Request, p=Depends(principal), db=Depends(database)):
+def approve(
+    id: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
+):
     require(p, "approver")
     row = owned(db, Run, id, p, True)
     if row.maker == p["sub"]:
@@ -446,7 +465,7 @@ def approve(id: str, request: Request, p=Depends(principal), db=Depends(database
 
 
 @app.post("/runs/{id}/finalize")
-def finalize(id: str, p=Depends(principal), db=Depends(database)):
+def finalize(id: str, p=Depends(principal), db=Depends(database, scope="function")):
     require(p, "approver")
     owned(db, Run, id, p, True)
     raise HTTPException(
@@ -457,7 +476,11 @@ def finalize(id: str, p=Depends(principal), db=Depends(database)):
 
 @app.get("/runs/{id}/exports/{kind}")
 def export(
-    id: str, kind: str, request: Request, p=Depends(principal), db=Depends(database)
+    id: str,
+    kind: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "payroll", "approver", "auditor", "employee")
     row = owned(db, Run, id, p)
@@ -577,7 +600,7 @@ class EvidenceInput(BaseModel):
 
 
 @app.get("/rule-evidence")
-def evidence_list(p=Depends(principal), db=Depends(database)):
+def evidence_list(p=Depends(principal), db=Depends(database, scope="function")):
     require(p, "admin", "payroll", "approver", "auditor")
     return [
         {
@@ -596,7 +619,10 @@ def evidence_list(p=Depends(principal), db=Depends(database)):
 
 @app.post("/rule-evidence", status_code=201)
 def evidence_create(
-    data: EvidenceInput, request: Request, p=Depends(principal), db=Depends(database)
+    data: EvidenceInput,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "payroll")
     row = RuleEvidence(
@@ -613,7 +639,10 @@ def evidence_create(
 
 @app.post("/rule-evidence/{id}/review")
 def evidence_review(
-    id: str, request: Request, p=Depends(principal), db=Depends(database)
+    id: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "approver")
     row = owned(db, RuleEvidence, id, p, True)
@@ -638,7 +667,7 @@ def compare(
     baseline_id: str,
     request: Request,
     p=Depends(principal),
-    db=Depends(database),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "payroll", "approver", "auditor")
     current = owned(db, Run, id, p)
@@ -685,7 +714,10 @@ def compare(
 
 @app.get("/runs/{id}/evidence-pack")
 def evidence_pack(
-    id: str, request: Request, p=Depends(principal), db=Depends(database)
+    id: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "payroll", "approver", "auditor")
     row = owned(db, Run, id, p)

@@ -8,18 +8,22 @@ flowchart LR
   Edge --> Identity[Identity and tenant FastAPI]
   Edge --> Workforce[Workforce and intake FastAPI]
   Edge --> Payroll[Payroll and rule registry FastAPI]
+  Edge --> Workplace[Workplace operations and talent FastAPI]
   Identity --> IDB[(Identity database)]
   Workforce --> WDB[(Workforce database)]
   Payroll --> PDB[(Payroll database)]
+  Workplace --> XDB[(Workplace database)]
+  Workplace -->|Authorized employee lookup| Workforce
   Payroll -->|Authorized snapshot API| Workforce
   Prometheus --> Identity
   Prometheus --> Workforce
   Prometheus --> Payroll
+  Prometheus --> Workplace
 ```
 
 Four small deployable Python services, one web image and one PostgreSQL process with four separately owned databases. Services do not join or read another service's tables. Identity owns tenants, memberships/login; workforce owns employee snapshots/import batches; payroll owns calendars, elements, rule metadata, run snapshots and results. Nigeria statutory is a domain within payroll initially; isolate it into a service when independently released jurisdiction packs justify the network cost. This avoids running a process for every feature on the first VPS.
 
-API routes are `/api/{identity,workforce,payroll}/…`; internal OpenAPI is available directly inside the Compose network, blocked at ingress. Public integration keys/webhooks are deferred. Browser carries one authenticated tenant claim, never an arbitrary tenant header. Runtime reads/writes use tenant predicates plus transaction-local PostgreSQL RLS context. Connections clear context at transaction end. Database constraints enforce tenant-local employee-code, import-digest and payroll-idempotency uniqueness.
+API routes are `/api/{identity,workforce,payroll,workplace}/…`; internal OpenAPI is available directly inside the Compose network, blocked at ingress. Public integration keys/webhooks are deferred. Browser carries one authenticated tenant claim, never an arbitrary tenant header. Runtime reads/writes use tenant predicates plus transaction-local PostgreSQL RLS context. Connections clear context at transaction end. Database constraints enforce tenant-local employee-code, import-digest and payroll-idempotency uniqueness.
 
 ## Deliberate simplifications from reference architecture
 
@@ -46,3 +50,5 @@ A single VPS has no host-level HA. Start with measured capacity; under-200-emplo
 ## Enrichment increment · 10 November 2026
 
 The workplace service adds typed operations, lifecycle, talent and employee-finance workflows in a separately owned fourth database, plus role-filtered operational summaries and staffing scenarios. Existing services add employee revisions and payroll evidence/comparison. See [scope and upgrade notes](ENRICHMENT_IMPLEMENTATION.md). These are initial workflows; production country-pack, payment and enterprise assurance gates remain unchanged.
+
+Transactional API dependencies use function scope: commits finish before success responses are serialized/sent. A failed commit cannot acknowledge an uncommitted write.

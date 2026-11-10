@@ -41,7 +41,7 @@ Recover on a fresh isolated host with compatible PostgreSQL major version:
 4. Deploy compatible application images and keys, verify all tenant record counts and audit/run checksums, decrypt synthetic fixtures, exercise user login/authorization and a synthetic payroll preview. Measure restore duration and data loss against backup timestamp.
 5. Review and approve cutover; preserve old data read-only until acceptance and never replay bank payments automatically.
 
-CI `scripts/restore-drill.sh` creates a **disposable database** from workforce `pg_dump`, verifies row counts and drops it. This proves a limited logical restore path, not disaster recovery of keys, all services, encryption, or off-site copies. Before production rehearse full encrypted off-site restore. Without tested WAL/PITR, daily backup implies up to 24h data loss, not a 15-minute RPO. No four-hour RTO is promised until demonstrated.
+CI `scripts/restore-drill.sh` restores each of the four service databases into a separately named **disposable database**, verifies representative record counts and data fingerprints, then drops the disposable copy. This proves logical restore, not disaster recovery of roles, keys, infrastructure or off-site copies. Before production rehearse full encrypted off-site restore. Without tested WAL/PITR, daily backup implies up to 24h data loss, not a 15-minute RPO. No four-hour RTO is promised until demonstrated.
 
 ## Rollback
 

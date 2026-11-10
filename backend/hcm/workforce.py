@@ -81,7 +81,7 @@ def employees(
     as_of: date | None = None,
     period_end: date | None = None,
     p=Depends(principal),
-    db=Depends(database),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "hr", "payroll", "approver", "auditor", "employee")
     q = select(Employee).where(Employee.tenant_id == p["tenant_id"])
@@ -112,7 +112,10 @@ def employees(
 
 @app.post("/employees", status_code=201)
 def create(
-    data: EmployeeInput, request: Request, p=Depends(principal), db=Depends(database)
+    data: EmployeeInput,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "hr")
     if db.scalar(
@@ -139,7 +142,10 @@ def create(
 
 @app.post("/imports/preview")
 async def preview(
-    file: UploadFile, request: Request, p=Depends(principal), db=Depends(database)
+    file: UploadFile,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "hr")
     rows = parse(file.filename or "", await file.read(MAX_BYTES + 1))
@@ -207,7 +213,12 @@ async def preview(
 
 
 @app.post("/imports/{id}/commit")
-def commit(id: str, request: Request, p=Depends(principal), db=Depends(database)):
+def commit(
+    id: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
+):
     require(p, "admin", "hr")
     batch = owned(db, ImportBatch, id, p, True)
     if batch.state == "committed":
@@ -293,7 +304,7 @@ def amend(
     data: Amendment,
     request: Request,
     p=Depends(principal),
-    db=Depends(database),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "hr")
     e = owned(db, Employee, id, p, True)
@@ -333,7 +344,12 @@ def amend(
 
 
 @app.get("/employees/{id}/history")
-def history(id: str, request: Request, p=Depends(principal), db=Depends(database)):
+def history(
+    id: str,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
+):
     require(p, "admin", "hr", "payroll", "auditor")
     e = owned(db, Employee, id, p)
     rows = db.scalars(
@@ -369,7 +385,7 @@ def history(id: str, request: Request, p=Depends(principal), db=Depends(database
 
 
 @app.get("/employees/lookup")
-def lookup(p=Depends(principal), db=Depends(database)):
+def lookup(p=Depends(principal), db=Depends(database, scope="function")):
     require(
         p,
         "admin",

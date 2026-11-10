@@ -386,3 +386,44 @@ def test_statutory_evidence_review_never_enables_production(apps):
     assert r.status_code == 200 and r.json()["production_eligible"] is False
     assert p.get("/rule-evidence", headers=headers("other", B)).json() == []
     assert p.get("/readiness", headers=headers()).json()["production_enabled"] is False
+
+
+def test_failed_commit_cannot_acknowledge_a_successful_write(apps, monkeypatch):
+    from sqlalchemy.exc import IntegrityError
+    from sqlalchemy.orm import Session as SqlSession
+
+    w, _, _ = apps
+    original = common.Session
+
+    class FailingSession(SqlSession):
+        def commit(self):
+            raise IntegrityError(
+                "Synthetic deferred constraint", {}, Exception("constraint failed")
+            )
+
+    monkeypatch.setattr(
+        common,
+        "Session",
+        sessionmaker(
+            original.kw["bind"], class_=FailingSession, expire_on_commit=False
+        ),
+    )
+    r = make(
+        w,
+        "service",
+        {
+            "employee_id": EA,
+            "title": "Commit failure test",
+            "description": "Synthetic rollback evidence",
+        },
+    )
+    assert r.status_code == 409, r.text
+    with original() as db:
+        assert (
+            db.scalar(
+                __import__("sqlalchemy")
+                .select(__import__("sqlalchemy").func.count())
+                .select_from(workplace.WorkItem)
+            )
+            == 0
+        )

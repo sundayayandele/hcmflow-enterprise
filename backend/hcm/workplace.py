@@ -180,7 +180,11 @@ def balance(db, p, employee_id, year):
 
 
 @app.get("/items")
-def items(kind: str | None = None, p=Depends(principal), db=Depends(database)):
+def items(
+    kind: str | None = None,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
+):
     if kind is not None and kind not in SCHEMAS:
         raise HTTPException(422, "Unknown workflow kind")
     rows = db.scalars(
@@ -194,7 +198,10 @@ def items(kind: str | None = None, p=Depends(principal), db=Depends(database)):
 
 @app.post("/items", status_code=201)
 def create(
-    data: CreateItem, request: Request, p=Depends(principal), db=Depends(database)
+    data: CreateItem,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     if data.kind not in SCHEMAS:
         raise HTTPException(422, "Unknown workflow kind")
@@ -271,7 +278,7 @@ def transition(
     data: Decision,
     request: Request,
     p=Depends(principal),
-    db=Depends(database),
+    db=Depends(database, scope="function"),
 ):
     row = item(db, id, p)
     if row.version != data.expected_version:
@@ -340,7 +347,7 @@ def tasks(
     data: TaskDecision,
     request: Request,
     p=Depends(principal),
-    db=Depends(database),
+    db=Depends(database, scope="function"),
 ):
     row = item(db, id, p)
     if row.kind not in ("onboarding", "exit") or not privileged(p, row.kind):
@@ -372,7 +379,7 @@ def tasks(
 
 
 @app.get("/leave-balances")
-def balances(p=Depends(principal), db=Depends(database)):
+def balances(p=Depends(principal), db=Depends(database, scope="function")):
     q = select(LeaveBalance).where(LeaveBalance.tenant_id == p["tenant_id"])
     if not set(p["roles"]) & {"admin", "hr", "approver"}:
         q = q.where(LeaveBalance.employee_id == p.get("employee_id", ""))
@@ -392,7 +399,10 @@ def balances(p=Depends(principal), db=Depends(database)):
 
 @app.post("/leave-balances")
 def allocate(
-    data: BalanceInput, request: Request, p=Depends(principal), db=Depends(database)
+    data: BalanceInput,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
 ):
     require(p, "admin", "hr")
     validate_subject(data.employee_id, request, p)
@@ -442,7 +452,7 @@ def policy(p=Depends(principal)):
 
 
 @app.get("/insights")
-def insights(p=Depends(principal), db=Depends(database)):
+def insights(p=Depends(principal), db=Depends(database, scope="function")):
     require(p, "admin", "hr", "finance", "auditor", "talent", "recruiter")
     rows = db.scalars(
         select(WorkItem).where(WorkItem.tenant_id == p["tenant_id"])
@@ -469,7 +479,7 @@ def insights(p=Depends(principal), db=Depends(database)):
 
 
 @app.get("/plans")
-def plans(p=Depends(principal), db=Depends(database)):
+def plans(p=Depends(principal), db=Depends(database, scope="function")):
     require(p, "admin", "hr", "finance", "auditor")
     return [
         {"id": r.id, **decrypt(r.payload)}
@@ -478,7 +488,12 @@ def plans(p=Depends(principal), db=Depends(database)):
 
 
 @app.post("/plans", status_code=201)
-def plan(data: PlanInput, request: Request, p=Depends(principal), db=Depends(database)):
+def plan(
+    data: PlanInput,
+    request: Request,
+    p=Depends(principal),
+    db=Depends(database, scope="function"),
+):
     require(p, "admin", "hr", "finance")
     try:
         result = staffing_projection(
